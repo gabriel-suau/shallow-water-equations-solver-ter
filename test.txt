@@ -6,3 +6,5 @@ Deuxième nouvelle ligne.
 nouvelle ligne.
 
 Nouvelle fonctionnalité. 
+Nouvelle fonctionnalité.
+Nouvelle fonctionnalité bis.

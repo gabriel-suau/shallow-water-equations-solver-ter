@@ -16,15 +16,15 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 * Lucas Trautmann
 
 ## Main functionnalities
-- [] Organize the code and create a Makefile.
-- [] Implement a small linear algebra library.
-- [] Implement basic 1D Finite Volumes schemes.
-- [] Create test cases for verification.
-- [] Create experimental data files for validation.
-- [] Document the code (using Doxygen).
-- [] Implement a nice command-line parser.
+- [ ] Organize the code and create a Makefile.
+- [ ] Implement a small linear algebra library.
+- [ ] Implement basic 1D Finite Volumes schemes.
+- [ ] Create test cases for verification.
+- [ ] Create experimental data files for validation.
+- [ ] Document the code (using Doxygen).
+- [ ] Implement a nice command-line parser.
 
 ## Additional functionnalities
-- [] 2D model.
-- [] Implement more robust Finite Volumes schemes.
-- [] Parallelize the code.
+- [ ] 2D model.
+- [ ] Implement more robust Finite Volumes schemes.
+- [ ] Parallelize the code.

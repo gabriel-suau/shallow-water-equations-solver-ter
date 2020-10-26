@@ -1,6 +1,6 @@
-# Saint-venant solver
+# TER
 
-Saint-Venant solver is a C++ code for solving the 1D and 2D Saint-Venant equations using the Finite Volumes Method.
+C++ solver for the 1D Saint-Venant equations using the Finite Volumes Method.
 
 Work in progress...
 
@@ -15,6 +15,15 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 * Gabriel Suau
 * Lucas Trautmann
 
-## Implemented functionnalities
+## Main functionnalities
+[] Organize the code and create a Makefile.
+[] Implement a small linear algebra library.
+[] Implement basic 1D Finite Volumes schemes.
+[] Create test cases for verification.
+[] Create experimental data files for validation.
+[] Document the code (using Doxygen).
 
-None, for the moment.
+## Additional functionnalities
+[] 2D model.
+[] Implement more robust Finite Volumes schemes.
+[] Parallelize the code.

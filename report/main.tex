@@ -1,0 +1,261 @@
+\documentclass[
+a4paper,
+11pt,
+titlepage,
+]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GEOMETRY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[%
+paper=a4paper,%
+margin=2.5cm,%
+]{geometry}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PACKAGES INCLUSION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GENERIC PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[utf8]{inputenc}					% Source code encoding (\'{e} --> é)
+\usepackage[T1]{fontenc}						% Support accents in the output file
+\usepackage[french]{babel}					% Support for french typography
+\usepackage{setspace}								% Control vertical spacing between lines
+\onehalfspacing											% 1.5 spacing
+\usepackage{graphicx}								% Graphics inclusion.
+\graphicspath{{illustrations/}}				% Path for images
+\usepackage{pdfpages}							% PDF pages inclusion
+\usepackage{ragged2e}							% Text alignement
+\usepackage{fancybox}								% \shadowbox
+\usepackage{xcolor}									% Colors
+\usepackage{array}										% Tables
+\usepackage{amsmath}							% Maths symbols
+\usepackage{amssymb}							% Maths symbols
+\usepackage[subrefformat=parens
+]{subcaption}													% Subfigures -- incompatible with the subfigure package
+\usepackage[margin=10pt,
+font=footnotesize,
+labelfont=bf,
+labelsep=endash
+]{caption}															% Vastly improves the standard formatting of captions
+\usepackage{lipsum}									% Lorem ipsum
+\usepackage[autostyle,
+english=british,
+french=quotes]{csquotes}						% Foreign language quotes
+\usepackage{multicol}								% Multicolumn environments
+\usepackage{listings}                 				% Source code displaying
+\usepackage{minted}									% Code syntax coloration
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% From https://tex.stackexchange.com/questions/49643/making-appendix-for-thesis#49647
+\usepackage[toc]{appendix}                                              % Appendices
+\renewcommand{\appendixtocname}{Annexes}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% REFERENCES / LINKS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[colorlinks=false,
+linkbordercolor={1 0 0},
+urlbordercolor={0 1 0},
+citebordercolor={0 0 1},
+]{hyperref} 										% Hyper-links management
+\usepackage{url}							% Typesets URLs sensibly - with tt font, clickable in PDFs, and not breaking across lines
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DRAWING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{tikz}							% Draw nice things
+\usepackage{mathtools}							% especially the bloch sphere
+\usetikzlibrary{arrows.meta}						% that needs more packages.
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.13}
+\usepgfplotslibrary{dateplot, statistics}
+%\usepackage{filecontents}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% GLOSSARY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage[acronym,toc,style=index]{glossaries}
+%\makeglossaries
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NOMENCLATURE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[noprefix]{nomencl}
+\makenomenclature
+\renewcommand{\nomname}{Liste des symboles}
+
+\renewcommand\nomgroup[1]{
+\item[\bfseries
+\ifstrequal{#1}{G}{Lettres grecques}{
+  \ifstrequal{#1}{L}{Lettres latines}{}}
+]}
+
+\newcommand{\nomunit}[1]{
+\renewcommand{\nomentryend}{\hspace*{\fill}#1}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BIBLIOGRAPHY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[backend=biber,
+hyperref=true,
+url=false,
+isbn=true,
+backref=true,
+style=numeric,
+sorting=none,
+sortcites=true
+]{biblatex}         % Bibliography management
+\addbibresource{waves.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FANCY COMMANDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{fancyhdr}								% Allow fancy stuff in the page header
+\pagestyle{fancy}
+\fancypagestyle{plain}
+
+% Header
+\renewcommand{\headrulewidth}{1pt}
+% Footer
+\fancyfoot[L]{}
+\fancyfoot[R]{}
+\fancyfoot[C]{\thepage/\pageref{myLastPage}}
+
+\fancypagestyle{nofooter}{%
+  \fancyfoot{}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DEFINE SOME USEFUL MATH COMMANDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\uuline}[1]{\underline{\underline{#1}}}
+\renewcommand{\vec}[1]{\mathbf{\underline{#1}}}
+\newcommand{\tens}[1]{\mathbf{\uuline{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LAST WORDS BEFORE \BEGIN{DOCUMENT}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\everymath{\displaystyle}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOCUMENT START
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITLE PAGE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagenumbering{gobble} % Do not number the title page.
+\thispagestyle{empty}
+\begin{titlepage}
+	
+  \begin{multicols}{2}
+    \noindent ENSEIRB-MATMECA\\
+    1 Avenue du Dr Albert Schweitzer\\
+    33400 Talence\\
+    \url{https://enseirb-matmeca.bordeaux-inp.fr/fr}
+    \begin{flushright}
+      \includegraphics[height=3cm]{logo_enseirb_matmeca.png}
+    \end{flushright}
+  \end{multicols}
+  
+  \begin{center}
+    \rule{\linewidth}{0.5mm}\\[0.5cm]
+    {\Large \textbf{Rapport de TER}}\\[0.3cm]
+    \rule{\linewidth}{0.5mm}\\[1.5cm]
+    
+    \textbf{Année 2020 - 2021}\\[1.5cm]	
+    
+    \textbf{Modélisation de la propagation des vagues en milieu littoral}\\[3cm]
+    
+    \begin{tabular}{rl}
+      {\it Auteurs} & Robin {\sc Colombier}\\
+      				& Théo {\sc Guichard}\\
+      				& Geoffrey {\sc Lebaud}\\
+      				& Rémi {\sc Pégouret}\\
+      				& Gabriel {\sc Suau}\\
+      				& Lucas {\sc Trautmann}\\
+      				&\\
+      	{\it Tuteurs} & Natalie {\sc Bonneton}\\
+      				& Rodolphe {\sc Turpault}\\
+    \end{tabular}\\[2cm]
+  \end{center}
+\end{titlepage}
+
+\nocite{*}
+
+\clearpage
+
+\pagenumbering{gobble} % Do not number the contents page.
+\thispagestyle{empty} % No fancy header/foter.
+
+\tableofcontents
+
+\newpage
+
+\pagenumbering{arabic} % We want the numerotation now.
+\fancypagestyle{plain} % Now we want the fancy things.
+
+\section*{Résumé}
+\addcontentsline{toc}{section}{Résumé}
+
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\newpage
+
+\printnomenclature[1cm]
+\addcontentsline{toc}{section}{Liste des symboles}
+\newpage
+
+\section{Introduction}
+
+\subsection{Propagation des vagues en milieu littoral}
+
+\subsection{Dérivation des équations de Saint-Venant}
+
+Dans cette section, nous détaillons la dérivation des équations de Saint-Venant 2D à partir des équations de Navier-Stokes. Tout d'abord, nous allons faire une première simplification en considérant l'eau comme un fluide parfait. L'écoulement est considéré incompressible, et est donc régi par les équations d'Euler incompressibles :
+\begin{equation}
+\label{eq:eulerincomp}
+\rho\Big(\frac{\partial \vec{u}}{\partial t} + \big(\vec{u}\cdot\vec{\nabla}\big)\vec{u}\Big) = -\vec{\nabla}p + \rho\vec{g}
+\end{equation}
+\nomenclature[L]{$p$}{Pression \nomunit{Pa}}
+\nomenclature[L]{$g$}{Accélération de la pesanteur \nomunit{$m.s^{-2}$}}
+\nomenclature[L]{$\vec{u}$}{Vitesse du fluide \nomunit{$m.s^{-1}$}}
+\nomenclature[G]{$\rho$}{Masse volumique \nomunit{$kg.m^{-3}$}}
+
+Il y a trois équations pour quatre inconnues (la pression et les trois composantes de vitesse). Il faut fermer ce système d'équations en y ajoutant l'équation de conservation de la masse, qui s'écrit pour un écoulement incompressible : 
+\begin{equation}
+\label{eq:masscons}
+\vec{\nabla}\cdot\vec{u} = 0\\	
+\end{equation}
+
+
+\subsection{Forme conservative des équations et hyperbolicité}
+
+\section{Résolution numérique par volumes finis}
+
+\section{Expériences sur le littoral Aquitain}
+
+\newpage
+
+\label{myLastPage}
+
+\newpage
+
+\printbibliography
+\addcontentsline{toc}{section}{Références}
+
+\end{document}

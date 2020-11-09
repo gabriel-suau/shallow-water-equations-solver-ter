@@ -22,39 +22,39 @@ margin=2.5cm,%
 % GENERIC PACKAGES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[utf8]{inputenc}					% Source code encoding (\'{e} --> é)
-\usepackage[T1]{fontenc}						% Support accents in the output file
+\usepackage[T1]{fontenc}					% Support accents in the output file
 \usepackage[french]{babel}					% Support for french typography
-\usepackage{setspace}								% Control vertical spacing between lines
-\onehalfspacing											% 1.5 spacing
-\usepackage{graphicx}								% Graphics inclusion.
-\graphicspath{{illustrations/}}				% Path for images
-\usepackage{pdfpages}							% PDF pages inclusion
-\usepackage{ragged2e}							% Text alignement
-\usepackage{fancybox}								% \shadowbox
-\usepackage{xcolor}									% Colors
-\usepackage{array}										% Tables
-\usepackage{amsmath}							% Maths symbols
-\usepackage{amssymb}							% Maths symbols
+\usepackage{setspace}						% Control vertical spacing between lines
+\onehalfspacing%						% 1.5 spacing
+\usepackage{graphicx}						% Graphics inclusion.
+\graphicspath{{illustrations/}}				        % Path for images
+\usepackage{pdfpages}						% PDF pages inclusion
+\usepackage{ragged2e}						% Text alignement
+\usepackage{fancybox}						% \shadowbox
+\usepackage{xcolor}						% Colors
+\usepackage{array}						% Tables
+\usepackage{amsmath}						% Maths symbols
+\usepackage{amssymb}						% Maths symbols
 \usepackage[subrefformat=parens
-]{subcaption}													% Subfigures -- incompatible with the subfigure package
+]{subcaption}							% Subfigures -- incompatible with the subfigure package
 \usepackage[margin=10pt,
 font=footnotesize,
 labelfont=bf,
 labelsep=endash
-]{caption}															% Vastly improves the standard formatting of captions
-\usepackage{lipsum}									% Lorem ipsum
+]{caption}							% Vastly improves the standard formatting of captions
+\usepackage{lipsum}						% Lorem ipsum
 \usepackage[autostyle,
 english=british,
-french=quotes]{csquotes}						% Foreign language quotes
-\usepackage{multicol}								% Multicolumn environments
+french=quotes]{csquotes}					% Foreign language quotes
+\usepackage{multicol}						% Multicolumn environments
 \usepackage{listings}                 				% Source code displaying
-\usepackage{minted}									% Code syntax coloration
+\usepackage{minted}						% Code syntax coloration
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendices
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% From https://tex.stackexchange.com/questions/49643/making-appendix-for-thesis#49647
-\usepackage[toc]{appendix}                                              % Appendices
+\usepackage[toc]{appendix}                                      % Appendices
 \renewcommand{\appendixtocname}{Annexes}
 
 
@@ -65,16 +65,16 @@ french=quotes]{csquotes}						% Foreign language quotes
 linkbordercolor={1 0 0},
 urlbordercolor={0 1 0},
 citebordercolor={0 0 1},
-]{hyperref} 										% Hyper-links management
-\usepackage{url}							% Typesets URLs sensibly - with tt font, clickable in PDFs, and not breaking across lines
+]{hyperref} 							% Hyper-links management
+\usepackage{url}						% Typesets URLs sensibly - with tt font, clickable in PDFs, and not breaking across lines
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DRAWING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{tikz}							% Draw nice things
-\usepackage{mathtools}							% especially the bloch sphere
-\usetikzlibrary{arrows.meta}						% that needs more packages.
+\usepackage{tikz}						% Draw nice things
+\usepackage{mathtools}						% especially the bloch sphere
+\usetikzlibrary{arrows.meta}					% that needs more packages.
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.13}
 \usepgfplotslibrary{dateplot, statistics}
@@ -91,7 +91,7 @@ citebordercolor={0 0 1},
 % NOMENCLATURE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[noprefix]{nomencl}
-\makenomenclature
+\makenomenclature%
 \renewcommand{\nomname}{Liste des symboles}
 
 \renewcommand\nomgroup[1]{
@@ -122,7 +122,7 @@ sortcites=true
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FANCY COMMANDS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{fancyhdr}								% Allow fancy stuff in the page header
+\usepackage{fancyhdr}						% Allow fancy stuff in the page header
 \pagestyle{fancy}
 \fancypagestyle{plain}
 
@@ -200,7 +200,7 @@ sortcites=true
 \clearpage
 
 \pagenumbering{gobble} % Do not number the contents page.
-\thispagestyle{empty} % No fancy header/foter.
+\thispagestyle{empty}  % No fancy header/foter.
 
 \tableofcontents
 
@@ -236,13 +236,13 @@ Dans cette section, nous détaillons la dérivation des équations de Saint-Vena
 \nomenclature[L]{$\vec{u}$}{Vitesse du fluide \nomunit{$m.s^{-1}$}}
 \nomenclature[G]{$\rho$}{Masse volumique \nomunit{$kg.m^{-3}$}}
 
-Il y a trois équations pour quatre inconnues (la pression et les trois composantes de vitesse). Il faut fermer ce système d'équations en y ajoutant l'équation de conservation de la masse, qui s'écrit pour un écoulement incompressible : 
+Il y a trois équations pour quatre inconnues (la pression et les trois composantes de vitesse). Il faut fermer ce système d'équations en y ajoutant l'équation de conservation de la masse, qui s'écrit pour un écoulement incompressible :
 \begin{equation}
 \label{eq:masscons}
 \vec{\nabla}\cdot\vec{u} = 0\\	
 \end{equation}
 
-
+On se place dans un repère cartésien $R(0,\vec{e_x},\vec{e_y},\vec{e_z})$ et on suppose que les variations verticales de vitesse sont faibles.
 \subsection{Forme conservative des équations et hyperbolicité}
 
 \section{Résolution numérique par volumes finis}
@@ -250,11 +250,10 @@ Il y a trois équations pour quatre inconnues (la pression et les trois composan
 \section{Expériences sur le littoral Aquitain}
 
 \newpage
-
 \label{myLastPage}
 
 \newpage
-
+  
 \printbibliography
 \addcontentsline{toc}{section}{Références}
 

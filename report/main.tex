@@ -48,7 +48,7 @@ english=british,
 french=quotes]{csquotes}					% Foreign language quotes
 \usepackage{multicol}						% Multicolumn environments
 \usepackage{listings}                 				% Source code displaying
-\usepackage{minted}						% Code syntax coloration
+% \usepackage{minted}						% Code syntax coloration
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -183,14 +183,14 @@ sortcites=true
     
     \begin{tabular}{rl}
       {\it Auteurs} & Robin {\sc Colombier}\\
-      				& Théo {\sc Guichard}\\
-      				& Geoffrey {\sc Lebaud}\\
-      				& Rémi {\sc Pégouret}\\
-      				& Gabriel {\sc Suau}\\
-      				& Lucas {\sc Trautmann}\\
-      				&\\
-      	{\it Tuteurs} & Natalie {\sc Bonneton}\\
-      				& Rodolphe {\sc Turpault}\\
+                    & Théo {\sc Guichard}\\
+                    & Geoffrey {\sc Lebaud}\\
+                    & Rémi {\sc Pégouret}\\
+                    & Gabriel {\sc Suau}\\
+                    & Lucas {\sc Trautmann}\\
+                    &\\
+      {\it Tuteurs} & Natalie {\sc Bonneton}\\
+                    & Rodolphe {\sc Turpault}\\
     \end{tabular}\\[2cm]
   \end{center}
 \end{titlepage}
@@ -228,8 +228,8 @@ sortcites=true
 
 Dans cette section, nous détaillons la dérivation des équations de Saint-Venant 2D à partir des équations de Navier-Stokes. Tout d'abord, nous allons faire une première simplification en considérant l'eau comme un fluide parfait. L'écoulement est considéré incompressible, et est donc régi par les équations d'Euler incompressibles :
 \begin{equation}
-\label{eq:eulerincomp}
-\rho\Big(\frac{\partial \vec{u}}{\partial t} + \big(\vec{u}\cdot\vec{\nabla}\big)\vec{u}\Big) = -\vec{\nabla}p + \rho\vec{g}
+  \label{eq:eulerincomp}
+  \rho\Big(\frac{\partial \vec{u}}{\partial t} + \big(\vec{u}\cdot\vec{\nabla}\big)\vec{u}\Big) = -\vec{\nabla}p + \rho\vec{g}
 \end{equation}
 \nomenclature[L]{$p$}{Pression \nomunit{Pa}}
 \nomenclature[L]{$g$}{Accélération de la pesanteur \nomunit{$m.s^{-2}$}}
@@ -238,8 +238,8 @@ Dans cette section, nous détaillons la dérivation des équations de Saint-Vena
 
 Il y a trois équations pour quatre inconnues (la pression et les trois composantes de vitesse). Il faut fermer ce système d'équations en y ajoutant l'équation de conservation de la masse, qui s'écrit pour un écoulement incompressible :
 \begin{equation}
-\label{eq:masscons}
-\vec{\nabla}\cdot\vec{u} = 0\\	
+  \label{eq:masscons}
+  \vec{\nabla}\cdot\vec{u} = 0\\	
 \end{equation}
 
 On se place dans un repère cartésien $R(0,\vec{e_x},\vec{e_y},\vec{e_z})$ et on suppose que les variations verticales de vitesse sont faibles.
@@ -253,8 +253,18 @@ On se place dans un repère cartésien $R(0,\vec{e_x},\vec{e_y},\vec{e_z})$ et o
 \label{myLastPage}
 
 \newpage
-  
+
 \printbibliography
 \addcontentsline{toc}{section}{Références}
 
+\begin{appendices}
+
+  \section{Dérivation des équations de Saint-Venant}
+  \label{sec:deriv-des-equat}
+
+  \section{BlaBlaBla}
+  \label{sec:blablabla}
+
+
+\end{appendices}
 \end{document}

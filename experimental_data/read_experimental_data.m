@@ -34,39 +34,31 @@ PT35.time = PT35.time - 738081;
 %hold on
 %plot(PT35.time, PT35.h_hyd)
 
-% 0.56027 -> PT35(113000) - 0.62031 ->PT35(196000)
+% In our code, we are going to work with only a small portion of the data.
+% We chose the time period [0.56027, 0.62031] and get the corresponding
+% indices : 0.56027 -> PT35(113000) ; 0.62031 -> PT35(196000)
 
 nmin = 113000;
 nmax = 196000;
-valeurs = [PT35.time(nmin:nmax) PT35.h_hyd(nmin:nmax,1) PT35.h_hyd(nmin:nmax,2) PT35.h_hyd(nmin:nmax,3)];
-
 ntot=nmax-nmin+1;
-moy = mean(valeurs(1:end,2))
-dt = (valeurs(ntot,1)-valeurs(1,1))
-droite = [];
+water_height = [PT35.time(nmin:nmax) PT35.h_hyd(nmin:nmax,1) PT35.h_hyd(nmin:nmax,2) PT35.h_hyd(nmin:nmax,3)];
 
-coef = polyfit(valeurs(1:end,1),valeurs(1:end,2),2);
+% We need to remove the effects of tide in experimental data.
+% To do that, we make a polynomial regression to get the general trend
+% and substract it to keep only the height variation due to waves.
 
-droite = [coef(1)*valeurs(1:end,1).^2+coef(2)*valeurs(1:end,1)+coef(3)];
-new_valeur = valeurs(1:end,2)-droite(1:end);
-new_valeur2 = new_valeur-min(new_valeur)
+coef_3 = polyfit(water_height(1:end,1),water_height(1:end,2),2);
+coef_4 = polyfit(water_height(1:end,1),water_height(1:end,3),2);
+coef_5 = polyfit(water_height(1:end,1),water_height(1:end,4),2);
 
+regression_3 = [coef_3(1)*water_height(1:end,1).^2+coef_3(2)*water_height(1:end,1)+coef_3(3)];
+regression_4 = [coef_4(1)*water_height(1:end,1).^2+coef_4(2)*water_height(1:end,1)+coef_4(3)];
+regression_5 = [coef_5(1)*water_height(1:end,1).^2+coef_5(2)*water_height(1:end,1)+coef_5(3)];
 
-plot(new_valeur2)
+water_height(1:end,2) -= regression_3(1:end);
+water_height(1:end,3) -= regression_4(1:end);
+water_height(1:end,4) -= regression_5(1:end);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-csvwrite('valeurs.csv', new_valeur2);
+% Write the topography and the corrected water height into csv files.
+csvwrite("topography.csv",[transpose(topo.x) transpose(topo.z)]);
+csvwrite("water_height_35.csv", water_height);

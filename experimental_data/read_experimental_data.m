@@ -59,6 +59,18 @@ water_height(1:end,2) -= regression_3(1:end);
 water_height(1:end,3) -= regression_4(1:end);
 water_height(1:end,4) -= regression_5(1:end);
 
+% We have now the water level relative to the pressure sensors.
+% The sensors are located at a height equal to delta_b from the ground,
+% hence, we add this delta_b to get the real water height.
+
+delta_b_3 = 0.14;
+delta_b_4 = 0.11;
+delta_b_5 = 0.12;
+
+water_height(1:end,2) += delta_b_3 - min(min(water_height));
+water_height(1:end,3) += delta_b_4 - min(min(water_height));
+water_height(1:end,4) += delta_b_5 - min(min(water_height));
+
 % Write the topography and the corrected water height into csv files.
 csvwrite("topography.csv",[transpose(topo.x) transpose(topo.z)]);
 csvwrite("water_height_35.csv", water_height);

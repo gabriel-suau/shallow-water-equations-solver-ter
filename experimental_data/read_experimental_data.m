@@ -7,9 +7,9 @@ PT2 = load("data_PT2.mat");
 PT35 = load("data_sync_PT3-5.mat");
 
 % Get time vector.
-PT1.time = PT1.time - 738081;
-PT2.time = PT2.time - 738081;
-PT35.time = PT35.time - 738081;
+##PT1.time = (PT1.time - PT1.time(1))*16.;
+##PT2.time = (PT2.time - PT2.time(1))*16.;
+##PT35_time = (PT35.time - PT35.time(1))*16.;
 
 % Plot the topography and the position of the sensors.
 
@@ -37,10 +37,15 @@ PT35.time = PT35.time - 738081;
 % In our code, we are going to work with only a small portion of the data.
 % We chose the time period [0.56027, 0.62031] and get the corresponding
 % indices : 0.56027 -> PT35(113000) ; 0.62031 -> PT35(196000)
+% We also take the first value as the new origin.
 
 nmin = 113000;
 nmax = 196000;
-ntot=nmax-nmin+1;
+ntot = nmax-nmin+1;
+for i=nmin:nmax
+  PT35.time(i) = [(i-nmin)/16.];
+end
+
 water_height = [PT35.time(nmin:nmax) PT35.h_hyd(nmin:nmax,1) PT35.h_hyd(nmin:nmax,2) PT35.h_hyd(nmin:nmax,3)];
 
 % We need to remove the effects of tide in experimental data.

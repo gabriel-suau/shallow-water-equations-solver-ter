@@ -4,11 +4,11 @@
 # Object files
 *.o
 
-# PDF files
-*.pdf
-
 # Text files
 *.txt
+
+# Eigen files
+*/Eigen/
 
 #####################################################
 ####                   report                    ####
@@ -26,6 +26,12 @@
 *.xml
 *.toc
 *.synctex.gz
+
+# PDF files
+*.pdf
+
+# Images
+*.png
 
 #####################################################
 ####                admin files                  ####

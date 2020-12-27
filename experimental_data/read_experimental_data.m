@@ -39,8 +39,8 @@ PT35 = load("data_sync_PT3-5.mat");
 % indices : 0.56027 -> PT35(113000) ; 0.62031 -> PT35(196000)
 % We also take the first value as the new origin.
 
-nmin = 113000;
-nmax = 196000;
+nmin = 1544631;
+nmax = 1580000;
 ntot = nmax-nmin+1;
 for i=nmin:nmax
   PT35.time(i) = [(i-nmin)/16.];

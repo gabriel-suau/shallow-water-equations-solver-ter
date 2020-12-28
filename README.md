@@ -4,7 +4,7 @@ C++ solver for the 1D Saint-Venant equations with topography and without frictio
 
 Work in progress...
 
-The code will be validated by comparing the numerical results with experimental data.
+The code will be validated with test cases and experimental data.
 
 ## Credits
 
@@ -17,15 +17,22 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 * Gabriel Suau
 * Lucas Trautmann
 
-## Main functionnalities to implement
-- [ ] Organize the code and create a Makefile.
-- [ ] Implement a small linear algebra library.
-- [ ] Implement basic 1D Finite Volumes schemes.
+## Check-list
+- [x] Organize the code and create a Makefile.
+- [x] Implement basic 1D Finite Volumes schemes.
 - [ ] Create test cases for verification.
 - [x] Create experimental data files for validation.
-- [ ] Document the code (using Doxygen).
+- [ ] Document the code.
 
-## Additional functionnalities
+## Main features
+* Numerical fluxes : Lax-Friedrichs and Rusanov.
+* Time scheme : Explicit Euler for the advection term, Implicit Euler for the source term.
+* Source term : Topography (not working yet).
+* Boundary conditions : not implemented yet.
+* Scenarios : Resting lake, Dam Break
+
+## Additional optional features
 - [ ] 2D model.
-- [ ] Implement more robust Finite Volumes schemes.
+- [ ] Implement more robust Finite Volumes schemes (well-balanced schemes).
 - [ ] Parallelize the code.
+- [ ] Add a friction source term.

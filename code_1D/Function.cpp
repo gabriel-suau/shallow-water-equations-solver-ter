@@ -86,7 +86,7 @@ void Function::Initialize(DataFile* DF, Mesh* mesh)
       _Sol0.col(1).setZero();
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0.row(i)(0) = 2. + cos(M_PI * _cellCenters(i));
+          _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i));
         }
     }
   else if (_DF->getScenario() == "SinePerturbation")
@@ -96,7 +96,7 @@ void Function::Initialize(DataFile* DF, Mesh* mesh)
         {
           if (-1 < _cellCenters(i) && _cellCenters(i) < 1)
             {
-              _Sol0.row(i)(0) = 2. + cos(M_PI * _cellCenters(i)); 
+              _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i)); 
             }
           else
             {
@@ -184,7 +184,7 @@ void Function::Initialize()
       _Sol0.col(1).setZero();
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0.row(i)(0) = 2. + cos(M_PI * _cellCenters(i));
+          _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i));
         }
     }
   else if (_DF->getScenario() == "SinePerturbation")
@@ -194,7 +194,7 @@ void Function::Initialize()
         {
           if (-1 < _cellCenters(i) && _cellCenters(i) < 1)
             {
-              _Sol0.row(i)(0) = 2. + cos(M_PI * _cellCenters(i)); 
+              _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i)); 
             }
           else
             {

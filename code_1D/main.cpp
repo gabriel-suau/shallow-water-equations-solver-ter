@@ -6,6 +6,7 @@
 #include "TimeScheme.h"
 
 #include <iostream>
+// #include <cstdlib>
 
 int main(int argc, char** argv)
 {
@@ -32,7 +33,12 @@ int main(int argc, char** argv)
   DataFile* DF = new DataFile(argv[1]);
   DF->readDataFile();
   DF->printData();
+
+  //-------------------------------------------------------------------//
+  //---------------------Nettoyage du dossier de résultats-------------//
+  //-------------------------------------------------------------------//
   
+
   //--------------------------------------------------//
   //---------------------Maillage---------------------//
   //--------------------------------------------------//

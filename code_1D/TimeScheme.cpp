@@ -17,7 +17,7 @@ TimeScheme::TimeScheme()
 }
 
 TimeScheme::TimeScheme(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol):
-  _DF(DF), _mesh(mesh), _function(function), _finVol(finVol), _Sol(mesh->getNumberOfCells(), 2), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime)
+  _DF(DF), _mesh(mesh), _function(function), _finVol(finVol), _Sol(_function->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime)
 {
 }
 
@@ -27,7 +27,7 @@ void TimeScheme::Initialize(DataFile* DF, Mesh* mesh, Function* function, Finite
   _mesh = mesh;
   _function = function;
   _finVol = finVol;
-  _Sol.resize(mesh->getNumberOfCells(), 2);
+  _Sol = _function->getInitialCondition();
   _timeStep = DF->getTimeStep();
   _initialTime = DF->getInitialTime();
   _finalTime = DF->getFinalTime();
@@ -65,6 +65,14 @@ void TimeScheme::solve()
   // Sauvegarde la condition initiale
   std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n) + ".txt");
   saveCurrentSolution(fileName);
+
+  // Sauvegarde la topographie
+  std::string topoFileName(resultsDir + "/topography.txt");
+  std::ofstream topoFile(topoFileName, std::ios::out);
+  for (int i(0) ; i < _Sol.rows() ; ++i)
+    {
+      topoFile << _function->getTopography().row(i)(0) << " " << _function->getTopography().row(i)(1) << std::endl;
+    }
   
   // Boucle en temps
   while (_currentTime < _finalTime)
@@ -77,7 +85,7 @@ void TimeScheme::solve()
       if (n % _DF->getSaveFrequency() == 0)
         {
           std::cout << "Saving solution at t = " << _currentTime << std::endl;
-          std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n) + ".txt");
+          std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".txt");
           saveCurrentSolution(fileName); 
         }
     }
@@ -123,6 +131,10 @@ void ExplicitEuler::oneStep()
     {
       _Sol.row(i) += -dt * (fluxVector.row(i+1) - fluxVector.row(i)) / dx + dt * source.row(i);
     }
-  _Sol.row(0) = _Sol.row(1);
-  _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
+  // _Sol.row(0) = _Sol.row(1);
+  // _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
+  _Sol.row(0)(0) = _Sol.row(1)(0);
+  _Sol.row(0)(1) = -_Sol.row(1)(1);
+  _Sol.row(nCells - 1)(0) = _Sol.row(nCells - 2)(0);
+  _Sol.row(nCells - 1)(1) = -_Sol.row(nCells - 2)(1);
 }

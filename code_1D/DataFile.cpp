@@ -46,7 +46,7 @@ void DataFile::readDataFile()
   std::ifstream data_file(_fileName.data());
   if (!data_file.is_open())
     {
-      std::cout << termcolor::red << "ERROR : Unable to open file " << _fileName << std::endl;
+      std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open file " << _fileName << std::endl;
       std::cout << termcolor::reset;
       exit(-1);
     }
@@ -127,15 +127,78 @@ void DataFile::readDataFile()
           data_file >> _topographyFile;
         }
     }
+
+  // Création et nettoyage du dossier de résultats
+  std::cout << "Creating the results directory..." << std::endl;
+  system(("mkdir -p ./" +_resultsDir).c_str());
+  system(("rm -f ./" +_resultsDir + "/solution*").c_str());
+  system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/parameters.txt").c_str());
+
+  // Logs
+  std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
+  std::cout << termcolor::reset;
+
+  // Vérifications sur la topographie
   if (_isTopography == false)
     {
       _topographyType = "FlatBottom";
     }
-  std::cout << termcolor::magenta << "WARNING : Adjusting dx to fit within the spatial domain." << std::endl;
-  _Nx = int(ceil((_xmax - _xmin)/_dx));
-  _dx = (_xmax - _xmin)/_Nx;
-  std::cout << termcolor::reset << "New value : dx = " << _dx << std::endl;
-  std::cout << termcolor::green << "SUCCESS : File read successfully" << std::endl;
+
+  // Ajustement des paramètres du maillage
+  // Si fichier de topographie, fait correspondre le maillage aux données
+  if (_topographyType == "File")
+    {
+      std::ifstream topoStream(_topographyFile.data());
+      if (!topoStream.is_open())
+        {
+          std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open the topography file " << _topographyFile << std::endl;
+          std::cout << termcolor::reset;
+          exit(-1);
+        }
+      else
+        {
+          std::cout << "Reading topography file " << _topographyFile << std::endl;
+        }
+      std::cout << termcolor::magenta << "WARNING::DATAFILE : Adjusting the mesh parameters to fit with the topography." << std::endl;
+      std::cout << termcolor::reset;
+      // Réinitialise les paramètres du maillage
+      _xmin = 0.;
+      _xmax = 0.;
+      _Nx = 1;
+      double dummy;
+      std::string properLine;
+      // Lit la première ligne pour récupérer _xmin
+      getline(topoStream, line);
+      properLine = regex_replace(line, std::regex(","), std::string(" "));
+      std::stringstream ss(properLine);
+      ss >> _xmin >> dummy;
+      // Lit le reste du fichier pour récupérer le nombre de cellules, _xmax et dx
+      while (getline(topoStream, line))
+        {
+          properLine = regex_replace(line, std::regex(","), std::string(" "));
+          std::stringstream ss(properLine);
+          ss >> _xmax >> dummy;
+          ++_Nx;
+        }
+      _dx = (_xmax - _xmin)/_Nx;
+      // Affiche les nouvelles valeurs
+      std::cout << "New values : " << std::endl;
+      std::cout << "  |xmin           = " << _xmin << std::endl;
+      std::cout << "  |xmax           = " << _xmax << std::endl;
+      std::cout << "  |dx             = " << _dx << std::endl;
+    }
+  // Sinon, ajuste uniquement dx pour coller avec le domaine
+  else
+    {
+      // Ajustement du pas d'espace pour correspondre au domaine
+      std::cout << termcolor::magenta << "WARNING::DATAFILE : Adjusting dx to fit within the spatial domain." << std::endl;
+      _Nx = int(ceil((_xmax - _xmin)/_dx));
+      _dx = (_xmax - _xmin)/_Nx;
+      // Affiche la nouvelle valeur
+      std::cout << termcolor::reset << "New value : dx = " << _dx << std::endl;
+    }
+  // Logs de succès
+  std::cout << termcolor::green << "SUCCESS::DATAFILE : File read successfully" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
 
@@ -161,7 +224,7 @@ void DataFile::printData() const
   std::cout << "Topography        = " << _topographyType << std::endl;
   if (_topographyType == "File")
     {
-      std::cout << "Topography file  = " << _topographyFile << std::endl;
+      std::cout << "Topography file   = " << _topographyFile << std::endl;
     }
   std::cout << "====================================================================================================" << std::endl << std::endl;
 }

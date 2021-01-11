@@ -69,4 +69,18 @@ public:
   void buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 };
 
+class HLL: public FiniteVolume
+{
+public:
+  // Constructeur
+  HLL();
+  HLL(DataFile* DF, Mesh* mesh, Function* function);
+
+  // Initialisation
+  void Initialize(DataFile* DF, Mesh* mesh, Function* function);
+
+  // Build flux vector
+  void buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+};
+
 #endif //FINITE_VOLUME_H

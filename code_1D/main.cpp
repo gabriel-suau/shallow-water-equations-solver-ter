@@ -6,7 +6,6 @@
 #include "TimeScheme.h"
 
 #include <iostream>
-// #include <cstdlib>
 
 int main(int argc, char** argv)
 {
@@ -26,18 +25,13 @@ int main(int argc, char** argv)
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Solving 1D St-Venant equations for you !" << std::endl;
   std::cout << "====================================================================================================" << std::endl << std::endl;
-  
+
   //-------------------------------------------------------//
   //---------------------Fichier de paramètres-------------//
   //-------------------------------------------------------//
   DataFile* DF = new DataFile(argv[1]);
   DF->readDataFile();
   DF->printData();
-
-  //-------------------------------------------------------------------//
-  //---------------------Nettoyage du dossier de résultats-------------//
-  //-------------------------------------------------------------------//
-  
 
   //--------------------------------------------------//
   //---------------------Maillage---------------------//
@@ -62,6 +56,10 @@ int main(int argc, char** argv)
   else if (DF->getNumericalFlux() == "Rusanov")
     {
       finVol = new Rusanov(DF, mesh, function);
+    }
+  else if (DF->getNumericalFlux() == "HLL")
+    {
+      finVol = new HLL(DF, mesh, function);
     }
   else
     {

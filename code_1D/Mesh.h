@@ -17,8 +17,8 @@ private:
   double _xmax;
   double _dx;
   int _numberOfCells;
-  Eigen::VectorXd _cellCenters; // numberOfCells |-|-|-|-|-|
-  Eigen::VectorXd _cellBoundaries; // numberOfCells+1
+  Eigen::VectorXd _cellCenters;
+  Eigen::VectorXd _cellBoundaries;
 
 public:
   // Constructeurs

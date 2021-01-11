@@ -138,7 +138,15 @@ void DataFile::readDataFile()
   std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
   std::cout << termcolor::reset;
 
-  // Vérifications sur la topographie
+  // Pour le scénario LaSalie, impose la topographie
+  if (_scenario == "LaSalie")
+    {
+      _isTopography = true;
+      _topographyType = "File";
+      _topographyFile = "topography_la_salie.csv";
+    }
+
+  // Si pas de topo --> impose un fond plat
   if (_isTopography == false)
     {
       _topographyType = "FlatBottom";

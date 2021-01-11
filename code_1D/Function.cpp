@@ -5,6 +5,8 @@
 #include "Eigen/Eigen/Sparse"
 
 #include <iostream>
+#include <fstream>
+#include <regex>
 #include <cmath>
 
 Function::Function()
@@ -18,102 +20,14 @@ Function::Function(DataFile* DF, Mesh* mesh):
 
 void Function::Initialize(DataFile* DF, Mesh* mesh)
 {
-  // Logs de début
-  std::cout << "====================================================================================================" << std::endl;
-  std::cout << "Building topography and initial condition..." << std::endl;
-
   // Initialisation
   _DF = DF;
   _mesh = mesh;
   _xmin = mesh->getxMin();
   _xmax = mesh->getxMax();
   _nCells = mesh->getNumberOfCells();
-  _cellCenters = mesh->getCellCenters();
-  
-  // Resize la condition initiale, la topographie et le terme source
-  _Sol0.resize(_nCells, 2);
-  _topography.resize(_nCells, 2);
-  _source.resize(_nCells, 2);
-
-  // Initialise la topographie
-  _topography.col(0) = _cellCenters;
-  if (_DF->getTopographyType() == "FlatBottom")
-    {
-      _topography.col(1).setZero();
-    }
-  else
-    {
-      std::cout << termcolor::red << "ERROR::TOPOGRAPHY : Case not implemented" << std::endl;
-      std::cout << termcolor::reset;
-      exit(-1);
-    }
-
-  // Initialise la condition initiale
-  if (_DF->getScenario() == "ConstantWaterHeight")
-    {
-      _Sol0.col(1).setZero();
-      for (int i(0) ; i < _nCells ; ++i)
-        {
-          _Sol0.row(i)(0) = 3.;
-        }
-    }
-  else if (_DF->getScenario() == "RestingLake")
-    {
-      _Sol0.col(1).setZero();
-      double H(3.);
-      for (int i(0) ; i < _nCells ; ++i)
-        {
-          _Sol0.row(i)(0) = std::max(H - _topography.row(i)(1), 0.);
-        }
-    }
-  else if (_DF->getScenario() == "DamBreak")
-    {
-      _Sol0.col(1).setZero();
-      for (int i(0) ; i < _nCells ; ++i)
-        {
-          if (_cellCenters(i) < 0.5*(_xmax + _xmin))
-            {
-              _Sol0.row(i)(0) = 1.0;
-            }
-          else
-            {
-              _Sol0.row(i)(0) = 0.;
-            }
-        }
-    }
-  else if (_DF->getScenario() == "SineWave")
-    {
-      _Sol0.col(1).setZero();
-      for (int i(0) ; i < _nCells ; ++i)
-        {
-          _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i));
-        }
-    }
-  else if (_DF->getScenario() == "SinePerturbation")
-    {
-      _Sol0.col(1).setZero();
-      for (int i(0) ; i < _nCells ; ++i)
-        {
-          if (-1 < _cellCenters(i) && _cellCenters(i) < 1)
-            {
-              _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i)); 
-            }
-          else
-            {
-              _Sol0.row(i)(0) = 1.8;
-            }
-        }
-    }
-  else
-    {
-      std::cout << termcolor::red << "ERROR::SCENARIO : Case not implemented" << std::endl;
-      std::cout << termcolor::reset;
-      exit(-1);
-    }
-
-  // Logs de fin
-  std::cout << termcolor::green << "SUCCESS : Topography and Initial Conditions were successfully built." << std::endl;
-  std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+  _cellCenters = mesh->getCellCenters();  
+  this->Initialize();
 }
 
 void Function::Initialize()
@@ -121,12 +35,6 @@ void Function::Initialize()
   // Logs de début
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Building topography and initial condition..." << std::endl;
-
-  // Initialisation
-  _xmin = _mesh->getxMin();
-  _xmax = _mesh->getxMax();
-  _nCells = _mesh->getNumberOfCells();
-  _cellCenters = _mesh->getCellCenters();
   
   // Resize la condition initiale, la topographie et le terme source
   _Sol0.resize(_nCells, 2);
@@ -138,6 +46,38 @@ void Function::Initialize()
   if (_DF->getTopographyType() == "FlatBottom")
     {
       _topography.col(1).setZero();
+    }
+  else if (_DF->getTopographyType() == "Linear")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _topography(i,1) = 0.05 * (_cellCenters(i) - _xmin);
+        }
+    }
+  else if (_DF->getTopographyType() == "File")
+    {
+      const std::string topoFile(_DF->getTopographyFile());
+      std::ifstream topoStream(topoFile);
+      std::string line, properLine;
+      double dummy;
+      int i(0);
+      if (!topoStream.is_open())
+        {
+          std::cout << termcolor::red << "ERROR::TOPOGRAPHY : Unable to open the topography file : " << topoFile << std::endl;
+          std::cout << termcolor::reset;
+          exit(-1);
+        }
+      else
+        {
+          std::cout << "Building the topography from file : " << topoFile << std::endl;
+        }
+      while(getline(topoStream, line))
+        {
+          properLine = regex_replace(line, std::regex(",") , std::string(" "));
+          std::stringstream ss(properLine);
+          ss >> dummy >> _topography(i,1);
+          ++i;
+        }
     }
   else
     {
@@ -152,7 +92,7 @@ void Function::Initialize()
       _Sol0.col(1).setZero();
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0.row(i)(0) = 3.;
+          _Sol0(i,0) = 3.;
         }
     }
   else if (_DF->getScenario() == "RestingLake")
@@ -161,44 +101,47 @@ void Function::Initialize()
       double H(3.);
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0.row(i)(0) = std::max(H - _topography.row(i)(1), 0.);
+          _Sol0(i,0) = std::max(H - _topography(i,1), 0.);
         }
     }
   else if (_DF->getScenario() == "DamBreak")
     {
       _Sol0.col(1).setZero();
+      double H(1.);
       for (int i(0) ; i < _nCells ; ++i)
         {
           if (_cellCenters(i) < 0.5*(_xmax + _xmin))
             {
-              _Sol0.row(i)(0) = 1.0;
+              _Sol0(i,0) = std::max(H - _topography(i,1), 0.);
             }
           else
             {
-              _Sol0.row(i)(0) = 0.;
+              _Sol0(i,0) = 0.;
             }
         }
     }
   else if (_DF->getScenario() == "SineWave")
     {
       _Sol0.col(1).setZero();
+      double H(2.);
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i));
+          _Sol0(i,0) = std::max(H + 0.2 * cos(M_PI * _cellCenters(i)) - _topography(i,1), 0.);
         }
     }
   else if (_DF->getScenario() == "SinePerturbation")
     {
       _Sol0.col(1).setZero();
+      double H(2.);
       for (int i(0) ; i < _nCells ; ++i)
         {
           if (-1 < _cellCenters(i) && _cellCenters(i) < 1)
             {
-              _Sol0.row(i)(0) = 2. + 0.2 * cos(M_PI * _cellCenters(i)); 
+              _Sol0(i,0) = std::max(H + 0.2 * cos(M_PI * _cellCenters(i) - _topography(i,1)), 0.);
             }
           else
             {
-              _Sol0.row(i)(0) = 1.8;
+              _Sol0(i,0) = 1.8;
             }
         }
     }
@@ -224,10 +167,57 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& S
     {
       _source.setZero();
     }
+  else if (_DF->getTopographyType() == "Linear")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _source(i,1) = - g * Sol(i,0) * 0.05;
+        }
+    }
+  // Pour un fichier de topographie, la dérivée est approchée par une formule de
+  // différence finie centrée d'ordre deux à l'intérieur, et par une formule
+  // décentrée d'ordre deux sur les bords
+  else if (_DF->getTopographyType() == "File")
+    {
+      double dx(_mesh->getSpaceStep());
+      _source.col(0).setZero();
+      _source(0,1) = - g * Sol(0,0) * (_topography(1) - _topography(0))/(dx);
+      for (int i(1) ; i < _nCells - 1 ; ++i)
+        {
+          _source(i,1) = - g * Sol(i,0) * (_topography(i+1) - _topography(i-1))/(2. * dx);
+        }
+      _source(_nCells - 1, 1) = - g * Sol(_nCells - 1,0) * (_topography(_nCells - 1) - _topography(_nCells - 2))/(dx);
+    }
   else
     {
       std::cout << termcolor::red << "ERROR::SOURCETERM : Case not implemented." << std::endl;
       std::cout << termcolor::reset;
       exit(-1);
     }
+}
+
+Eigen::Vector2d Function::dirichletFunction(double x, double t)
+{
+  Eigen::Vector2d g(0.,0.);
+  // Condition d'entrée
+  if (x == _mesh->getxMin())
+    {
+
+    }
+  // Condition de sortie
+  if (x == _mesh->getxMax())
+    {
+      
+    }
+  return g;
+}
+
+Eigen::Vector2d Function::neumannFunction(double x, double t)
+{
+  Eigen::Vector2d sol(0.,0.);
+  // Condition d'entrée
+  
+  // Condition de sortie
+
+  return sol;
 }

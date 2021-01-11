@@ -40,10 +40,13 @@ public:
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getInitialCondition() const {return _Sol0;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getTopography() const {return _topography;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getSourceTerm() const {return _source;};
-  
-  // Build le terme source erme source et conditions aux limites.
+
+  // Build le terme source
   void buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+
+  // Conditions aux limites
+  Eigen::Vector2d dirichletFunction(double x, double t);
+  Eigen::Vector2d neumannFunction(double x, double t);
 };
 
 #endif // FUNCTION_H
-

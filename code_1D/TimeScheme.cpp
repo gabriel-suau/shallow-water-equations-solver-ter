@@ -131,10 +131,10 @@ void ExplicitEuler::oneStep()
     {
       _Sol.row(i) += -dt * (fluxVector.row(i+1) - fluxVector.row(i)) / dx + dt * source.row(i);
     }
-  // _Sol.row(0) = _Sol.row(1);
-  // _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
-  _Sol.row(0)(0) = _Sol.row(1)(0);
-  _Sol.row(0)(1) = -_Sol.row(1)(1);
-  _Sol.row(nCells - 1)(0) = _Sol.row(nCells - 2)(0);
-  _Sol.row(nCells - 1)(1) = -_Sol.row(nCells - 2)(1);
+  _Sol.row(0) = _Sol.row(1);
+  _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
+  // _Sol.row(0)(0) = _Sol.row(1)(0);
+  // _Sol.row(0)(1) = -_Sol.row(1)(1);
+  // _Sol.row(nCells - 1)(0) = _Sol.row(nCells - 2)(0);
+  // _Sol.row(nCells - 1)(1) = -_Sol.row(nCells - 2)(1);
 }

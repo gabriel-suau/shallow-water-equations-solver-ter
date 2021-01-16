@@ -137,11 +137,11 @@ void Function::Initialize()
         {
           if (-1 < _cellCenters(i) && _cellCenters(i) < 1)
             {
-              _Sol0(i,0) = std::max(H + 0.2 * cos(M_PI * _cellCenters(i) - _topography(i,1)), 0.);
+              _Sol0(i,0) = std::max(H + 0.2 * cos(M_PI * _cellCenters(i)) - _topography(i,1), 0.);
             }
           else
             {
-              _Sol0(i,0) = 1.8;
+              _Sol0(i,0) = std::max(1.8 - _topography(i,1),0.);
             }
         }
     }
@@ -202,7 +202,7 @@ Eigen::Vector2d Function::dirichletFunction(double x, double t)
   // Condition d'entrée
   if (x == _mesh->getxMin())
     {
-
+      
     }
   // Condition de sortie
   if (x == _mesh->getxMax())
@@ -214,10 +214,10 @@ Eigen::Vector2d Function::dirichletFunction(double x, double t)
 
 Eigen::Vector2d Function::neumannFunction(double x, double t)
 {
-  Eigen::Vector2d sol(0.,0.);
+  Eigen::Vector2d h(0.,0.);
   // Condition d'entrée
   
   // Condition de sortie
 
-  return sol;
+  return h;
 }

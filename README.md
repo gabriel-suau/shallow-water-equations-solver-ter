@@ -25,14 +25,14 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 - [ ] Document the code.
 
 ## Main features
-* Numerical fluxes : Lax-Friedrichs and Rusanov.
-* Time scheme : Explicit Euler for the advection term, Implicit Euler for the source term.
+* Numerical fluxes : Lax-Friedrichs, Rusanov and HLL.
+* Time scheme : Explicit Euler for both the advection term and the source term.
 * Source term : Topography (not working yet).
-* Boundary conditions : not implemented yet.
-* Scenarios : Resting lake, Dam Break
+* Boundary conditions : not working either.
+* Scenarios : Resting lake, Dam Break, Sine Perturbation...
 
 ## Additional optional features
-- [ ] 2D model.
-- [ ] Implement more robust Finite Volumes schemes (well-balanced schemes).
-- [ ] Parallelize the code.
-- [ ] Add a friction source term.
+- [ ] 2D model ?
+- [ ] Implement more robust Finite Volumes schemes (well-balanced schemes) ?
+- [ ] Parallelize the code ?
+- [ ] Add a friction source term ?

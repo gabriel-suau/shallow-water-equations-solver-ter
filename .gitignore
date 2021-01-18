@@ -4,8 +4,11 @@
 # Object files
 *.o
 
-# Text files
-# *.txt
+# Temporary saves
+*~
+
+# Results files
+solution_*
 
 # Eigen files
 */Eigen/

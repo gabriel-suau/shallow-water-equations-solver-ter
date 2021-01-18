@@ -79,6 +79,8 @@ void TimeScheme::solve()
   // Boucle en temps
   while (_currentTime < _finalTime)
     {
+      _function->buildSourceTerm(_Sol);
+      _finVol->buildFluxVector(_Sol);
       oneStep();
       ++n;
       _currentTime += _timeStep;
@@ -125,8 +127,6 @@ void ExplicitEuler::oneStep()
   double dx(_mesh->getSpaceStep());
   int nCells(_mesh->getNumberOfCells());
   // Construction du terme source et du flux numérique
-  _function->buildSourceTerm(_Sol);
-  _finVol->buildFluxVector(_Sol);
   Eigen::Matrix<double, Eigen::Dynamic, 2> source(_function->getSourceTerm());
   Eigen::Matrix<double, Eigen::Dynamic, 2> fluxVector(_finVol->getFluxVector());
   // Mise à jour de la solution sur chaque cellules
@@ -134,12 +134,4 @@ void ExplicitEuler::oneStep()
     {
       _Sol.row(i) += - dt*(fluxVector.row(i+1) - fluxVector.row(i))/dx + dt*source.row(i);
     }
-  // Conditions aux limites
-  // _Sol.row(0) = _Sol.row(1);
-  // _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
-  
-  // _Sol.row(0)(0) = _Sol.row(1)(0);
-  // _Sol.row(0)(1) = -_Sol.row(1)(1);
-  // _Sol.row(nCells - 1)(0) = _Sol.row(nCells - 2)(0);
-  // _Sol.row(nCells - 1)(1) = -_Sol.row(nCells - 2)(1);
 }

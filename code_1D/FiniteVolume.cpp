@@ -65,15 +65,15 @@ void LaxFriedrichs::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 
     {
       // Valeurs de la solution à gauche et à droite de l'arête
       double hg, qg, hd, qd;
-      // CL à gauche
+      // CL à gauche (que Neumann homogène pour le moment)
       if (i == 0)
         {
-          hg = _function->dirichletFunction(_DF->getXmin(), 0.)(0);
-          qg = _function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg;
+          hg = Sol(0,0);
+          qg = Sol(0,1);
           hd = Sol(0,0);
           qd = Sol(0,1);
         }
-      // CL à droite
+      // CL à droite (que Neumann homogène pour le moment)
       else if (i == nCells)
         {
           hg = Sol(nCells-1,0);
@@ -146,15 +146,15 @@ void Rusanov::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
     {
       // Valeurs de la solution à gauche et à droite de l'arête
       double hg, qg, hd, qd;
-      // CL à gauche
+      // CL à gauche (que Neumann homogène pour le moment)
       if (i == 0)
         {
-          hg = _function->dirichletFunction(_DF->getXmin(), 0.)(0);
-          qg = _function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg;
+          hg = Sol(0,0);
+          qg = Sol(0,1);
           hd = Sol(0,0);
           qd = Sol(0,1);
         }
-      // CL à droite
+      // CL à droite (que Neumann homogène pour le moment)
       else if (i == nCells)
         {
           hg = Sol(nCells-1,0);
@@ -234,15 +234,15 @@ void HLL::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
     {
       // Valeurs de la solution à gauche et à droite de l'arête
       double hg, qg, hd, qd;
-      // CL à gauche
+      // CL à gauche (que Neumann homogène pour le moment)
       if (i == 0)
         {
-          hg = _function->dirichletFunction(_DF->getXmin(), 0.)(0);
-          qg = _function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg;
+          hg = Sol(0,0);
+          qg = Sol(0,1);
           hd = Sol(0,0);
           qd = Sol(0,1);
         }
-      // CL à droite
+      // CL à droite (que Neumann homogène pour le moment)
       else if (i == nCells)
         {
           hg = Sol(nCells-1,0);

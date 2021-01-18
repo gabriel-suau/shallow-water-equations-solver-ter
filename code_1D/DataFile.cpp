@@ -90,7 +90,7 @@ void DataFile::readDataFile()
       if (proper_line.find("InitialTime") != std::string::npos)
         {
           data_file >> _initialTime;
-        }      
+        }
       if (proper_line.find("FinalTime") != std::string::npos)
         {
           data_file >> _finalTime;

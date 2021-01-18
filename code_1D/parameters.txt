@@ -18,7 +18,7 @@ ExplicitEuler
 #        Rusanov
 #        HLL
 NumericalFlux
-Rusanov
+LaxFriedrichs
 
 # Paramètres du maillage
 xmin
@@ -73,7 +73,9 @@ SaveFrequency
 #       HydraulicJump           -> Ressaut hydraulique
 #       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
 Scenario
-ConstantWaterHeight
+DamBreak
+
+# LES CL NE SONT PAS ENCORE LUES PAR LA CLASSE DataFile
 
 # Choix d'une CL à gauche. Valeurs possibles
 #       PeriodicWaves
@@ -100,7 +102,7 @@ FreeBoundary
 #         0 -> Fond plat
 #         1 -> Choisit la topo en fonction de la valeur de TopographyType
 IsTopography
-1
+0
 
 # Type de topographie. Valeurs possibles :
 #      FlatBottom      -> Fond plat
@@ -112,13 +114,15 @@ IsTopography
 #      EllipticBump    -> Bosse elliptique
 #      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-SineLinearDown
+EllipticBump
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv
 TopographyFile
 topography_la_salie.csv
 
+
+# PAS ENCORE IMPLÉMENTÉ
 
 ########################################
 ###             Friction             ###

@@ -145,16 +145,16 @@ void Function::Initialize()
   else if (_DF->getScenario() == "DamBreak")
     {
       _Sol0.col(1).setZero();
-      double H(1.);
+      double Hg(2.), Hd(1.);
       for (int i(0) ; i < _nCells ; ++i)
         {
           if (_cellCenters(i) < 0.5*(_xmax + _xmin))
             {
-              _Sol0(i,0) = std::max(H - _topography(i,1), 0.);
+              _Sol0(i,0) = std::max(Hg - _topography(i,1), 0.);
             }
           else
             {
-              _Sol0(i,0) = 0.;
+              _Sol0(i,0) = std::max(Hd - _topography(i,1), 0.);
             }
         }
     }

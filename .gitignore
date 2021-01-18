@@ -5,7 +5,7 @@
 *.o
 
 # Text files
-*.txt
+# *.txt
 
 # Eigen files
 */Eigen/

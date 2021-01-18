@@ -1,6 +1,7 @@
 #include "DataFile.h"
 #include "termcolor.h"
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <cmath>
 #include <regex>

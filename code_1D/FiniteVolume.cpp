@@ -60,14 +60,35 @@ void LaxFriedrichs::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 
   double b(dx/dt);
   int nCells(Sol.rows());
 
-  // Boucle sur les arêtes intérieures
-  for (int i(1) ; i < nCells ; ++i)
+  // Boucle sur les arêtes
+  for (int i(0) ; i <= nCells ; ++i)
     {
-      // Récupère les données importantes
-      double hg(Sol(i-1,0));
-      double qg(Sol(i-1,1));
-      double hd(Sol(i,0));
-      double qd(Sol(i,1));
+      // Valeurs de la solution à gauche et à droite de l'arête
+      double hg, qg, hd, qd;
+      // CL à gauche
+      if (i == 0)
+        {
+          hg = _function->dirichletFunction(_DF->getXmin(), 0.)(0);
+          qg = _function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg;
+          hd = Sol(0,0);
+          qd = Sol(0,1);
+        }
+      // CL à droite
+      else if (i == nCells)
+        {
+          hg = Sol(nCells-1,0);
+          qg = Sol(nCells-1,1);
+          hd = Sol(nCells-1,0);
+          qd = Sol(nCells-1,1);
+        }
+      // Arêtes intérieures
+      else
+        {
+          hg = Sol(i-1,0);
+          qg = Sol(i-1,1);
+          hd = Sol(i,0);
+          qd = Sol(i,1);
+        }
       // Construit le flux
       if (hg != 0. && hd != 0.)
         {
@@ -89,10 +110,6 @@ void LaxFriedrichs::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 
           _fluxVector.row(i) << 0., 0.;
         }
     }
-
-  // Flux aux limites (à déterminer avec les CL)
-  _fluxVector.row(0) << 0., 0.;
-  _fluxVector.row(nCells) << 0., 0.;
 }
 
 //---------------------------------------------//
@@ -124,14 +141,35 @@ void Rusanov::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
   double g(_DF->getGravityAcceleration());
   int nCells(Sol.rows());
 
-  // Boucle sur les arêtes intérieures
-  for (int i(1) ; i < nCells ; ++i)
+  // Boucle sur les arêtes
+  for (int i(0) ; i <= nCells ; ++i)
     {
-      // Récupère les données importantes
-      double hg(Sol(i-1,0));
-      double qg(Sol(i-1,1));
-      double hd(Sol(i,0));
-      double qd(Sol(i,1));
+      // Valeurs de la solution à gauche et à droite de l'arête
+      double hg, qg, hd, qd;
+      // CL à gauche
+      if (i == 0)
+        {
+          hg = _function->dirichletFunction(_DF->getXmin(), 0.)(0);
+          qg = _function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg;
+          hd = Sol(0,0);
+          qd = Sol(0,1);
+        }
+      // CL à droite
+      else if (i == nCells)
+        {
+          hg = Sol(nCells-1,0);
+          qg = Sol(nCells-1,1);
+          hd = Sol(nCells-1,0);
+          qd = Sol(nCells-1,1);
+        }
+      // Arêtes intérieures
+      else
+        {
+          hg = Sol(i-1,0);
+          qg = Sol(i-1,1);
+          hd = Sol(i,0);
+          qd = Sol(i,1);
+        }
       // Valeurs propres (pas tout à fait, mais bon...)
       double lambda1(abs(qg/hg) + sqrt(g * hg));
       double lambda2(abs(qd/hd) + sqrt(g * hd));
@@ -159,73 +197,6 @@ void Rusanov::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
         {
           _fluxVector.row(i) << 0., 0.;
         }
-    }
-
-  // Flux en entrée (à déterminer avec les CL)
-  double hg(_function->dirichletFunction(_DF->getXmin(), 0.)(0));
-  double qg(_function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg);
-  double hd(Sol(0,0));
-  double qd(Sol(0,1));
-  // Valeurs propres (pas tout à fait, mais bon...)
-  double lambda1(abs(qg/hg) + sqrt(g * hg));
-  double lambda2(abs(qd/hd) + sqrt(g * hd));
-  double b;
-  
-  // Construit le flux
-  if (hg != 0. && hd != 0.)
-    {
-      b = std::max(lambda1,lambda2);
-      _fluxVector(0,0) = 0.5 * (qd + qg - b * (hd - hg));
-      _fluxVector(0,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) + pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
-    }
-  else if (hg < 1e-6 && hd != 0.)
-    {
-      b = lambda2;
-      _fluxVector(0,0) = 0.5 * (qd - b * hd);
-      _fluxVector(0,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) - b * (qd));
-    }
-  else if (hd < 1e-6 && hg != 0)
-    {
-      b = lambda1;
-      _fluxVector(0,0) = 0.5 * (qg + b * hg);
-      _fluxVector(0,1) = 0.5 * (pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (- qg));
-    }
-  else
-    {
-      _fluxVector.row(0) << 0., 0.;
-    }
-
-  // Flux en sortie (à déterminer avec les CL)
-  hg = Sol(nCells-1,0);
-  qg = Sol(nCells-1,1);
-  hd = Sol(nCells-1,0);
-  qd = Sol(nCells-1,1);
-  // Valeurs propres (pas tout à fait, mais bon...)
-  lambda1 = abs(qg/hg) + sqrt(g * hg);
-  lambda2 = abs(qd/hd) + sqrt(g * hd);
-  
-  // Construit le flux
-  if (hg != 0. && hd != 0.)
-    {
-      b = std::max(lambda1,lambda2);
-      _fluxVector(nCells,0) = 0.5 * (qd + qg - b * (hd - hg));
-      _fluxVector(nCells,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) + pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
-    }
-  else if (hg < 1e-6 && hd != 0.)
-    {
-      b = lambda2;
-      _fluxVector(nCells,0) = 0.5 * (qd - b * hd);
-      _fluxVector(nCells,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) - b * (qd));
-    }
-  else if (hd < 1e-6 && hg != 0)
-    {
-      b = lambda1;
-      _fluxVector(nCells,0) = 0.5 * (qg + b * hg);
-      _fluxVector(nCells,1) = 0.5 * (pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (- qg));
-    }
-  else
-    {
-      _fluxVector.row(nCells) << 0., 0.;
     }
 }
 
@@ -258,14 +229,35 @@ void HLL::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
   double g(_DF->getGravityAcceleration());
   int nCells(Sol.rows());
 
-  // Boucle sur les arêtes intérieures
-  for (int i(1) ; i < nCells ; ++i)
+  // Boucle sur les arêtes
+  for (int i(0) ; i <= nCells ; ++i)
     {
-      // Récupère les données importantes
-      double hg(Sol(i-1,0));
-      double qg(Sol(i-1,1));
-      double hd(Sol(i,0));
-      double qd(Sol(i,1));
+      // Valeurs de la solution à gauche et à droite de l'arête
+      double hg, qg, hd, qd;
+      // CL à gauche
+      if (i == 0)
+        {
+          hg = _function->dirichletFunction(_DF->getXmin(), 0.)(0);
+          qg = _function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg;
+          hd = Sol(0,0);
+          qd = Sol(0,1);
+        }
+      // CL à droite
+      else if (i == nCells)
+        {
+          hg = Sol(nCells-1,0);
+          qg = Sol(nCells-1,1);
+          hd = Sol(nCells-1,0);
+          qd = Sol(nCells-1,1);
+        }
+      // Arêtes intérieures
+      else
+        {
+          hg = Sol(i-1,0);
+          qg = Sol(i-1,1);
+          hd = Sol(i,0);
+          qd = Sol(i,1);
+        }
       // Valeurs propres (cette fois c'est bien les valeurs propres)
       double lambda1(qg/hg + sqrt(g * hg));
       double lambda2(qg/hg - sqrt(g * hg));
@@ -338,8 +330,4 @@ void HLL::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
           _fluxVector.row(i) << 0., 0.;
         }
     }
-
-  // Flux aux limites (à déterminer avec les CL)
-  _fluxVector.row(0) << 0., 0.;
-  _fluxVector.row(nCells) << 0., 0.;
 }

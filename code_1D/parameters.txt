@@ -22,11 +22,11 @@ Rusanov
 
 # Paramètres du maillage
 xmin
--5.
+-10.
 xmax
-5.
+10.
 dx
-0.01
+0.02
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
@@ -73,7 +73,7 @@ SaveFrequency
 #       HydraulicJump           -> Ressaut hydraulique
 #       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
 Scenario
-RestingLake
+ConstantWaterHeight
 
 # Choix d'une CL à gauche. Valeurs possibles
 #       PeriodicWaves
@@ -100,17 +100,19 @@ FreeBoundary
 #         0 -> Fond plat
 #         1 -> Choisit la topo en fonction de la valeur de TopographyType
 IsTopography
-0
+1
 
 # Type de topographie. Valeurs possibles :
-#      FlatBottom   -> Fond plat
-#      Linear       -> Droite (0 en xmin et 0.05 * xmax  en xmax)
-#      SineLinear   -> Pareil que linear, mais avec des bosses en sinus...
-#      Parabola     -> Parabole (x + (xmax+xmin)/2)^2
-#      EllipticBump -> Bosse elliptique
-#      File         -> Lire dans le fichier indiqué dans TopographyFile
+#      FlatBottom      -> Fond plat
+#      LinearUp        -> Droite ascendante (0 en xmin et 0.05 * xmax  en xmax)
+#      LinearDown      -> Droite descendante
+#      SineLinearUp    -> Pareil que LinearUp, mais avec des bosses en sinus...
+#      SineLinearDown  -> Pareil que LinearDown, mais avec des bosses en sinus...
+#      Parabola        -> Parabole (x + (xmax+xmin)/2)^2
+#      EllipticBump    -> Bosse elliptique
+#      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-SineLinear
+SineLinearDown
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv

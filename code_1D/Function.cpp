@@ -48,18 +48,32 @@ void Function::Initialize()
     {
       _topography.col(1).setZero();
     }
-  else if (_DF->getTopographyType() == "Linear")
+  else if (_DF->getTopographyType() == "LinearUp")
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
           _topography(i,1) = 0.05 * (_cellCenters(i) - _xmin);
         }
     }
-  else if (_DF->getTopographyType() == "SineLinear")
+  else if (_DF->getTopographyType() == "LinearDown")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _topography(i,1) = 0.05 * (_xmax - _cellCenters(i));
+        }
+    }
+  else if (_DF->getTopographyType() == "SineLinearUp")
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
           _topography(i,1) = 0.05 * (_cellCenters(i) - _xmin) + 0.05*sin(20*M_PI*_cellCenters(i)/(_xmax - _xmin));
+        }
+    }
+  else if (_DF->getTopographyType() == "SineLinearDown")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _topography(i,1) = 0.05 * (_xmax - _cellCenters(i)) + 0.05*sin(20*M_PI*_cellCenters(i)/(_xmax - _xmin));
         }
     }
   else if (_DF->getTopographyType() == "EllipticBump")
@@ -104,7 +118,7 @@ void Function::Initialize()
   else
     {
       std::cout << termcolor::red << "ERROR::TOPOGRAPHY : Case not implemented" << std::endl;
-      std::cout << termcolor::reset;
+      std::cout << termcolor::reset << "====================================================================================================" << std::endl;
       exit(-1);
     }
   std::cout << termcolor::green << "SUCCESS::TOPOGRAPHY : Topography was successfully built." << std::endl;
@@ -172,11 +186,9 @@ void Function::Initialize()
   else
     {
       std::cout << termcolor::red << "ERROR::SCENARIO : Case not implemented" << std::endl;
-      std::cout << termcolor::reset;
+      std::cout << termcolor::reset << "====================================================================================================" << std::endl;
       exit(-1);
     }
-
-  // Logs de fin
   std::cout << termcolor::green << "SUCCESS::SCENARIO : Initial Conditions was successfully built." << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
@@ -188,18 +200,32 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& S
     {
       _source.setZero();
     }
-  else if (_DF->getTopographyType() == "Linear")
+  else if (_DF->getTopographyType() == "LinearUp")
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
           _source(i,1) = - _g * Sol(i,0) * 0.05;
         }
     }
-  else if (_DF->getTopographyType() == "SineLinear")
+  else if (_DF->getTopographyType() == "LinearDown")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _source(i,1) = _g * Sol(i,0) * 0.05;
+        }
+    }
+  else if (_DF->getTopographyType() == "SineLinearUp")
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
           _source(i,1) = - _g * Sol(i,0) * (0.05 + M_PI/(_xmax - _xmin)*cos(20*M_PI*_cellCenters(i)/(_xmax - _xmin)));
+        }
+    }
+  else if (_DF->getTopographyType() == "SineLinearDown")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _source(i,1) = - _g * Sol(i,0) * (-0.05 + M_PI/(_xmax - _xmin)*cos(20*M_PI*_cellCenters(i)/(_xmax - _xmin)));
         }
     }
   else if (_DF->getTopographyType() == "EllipticBump")
@@ -245,7 +271,7 @@ Eigen::Vector2d Function::dirichletFunction(double x, double t)
   // Condition d'entrée
   if (x == _mesh->getxMin())
     {
-      g << 1.5, 4.5;
+      g << 2., 10.;
     }
   // Condition de sortie
   if (x == _mesh->getxMax())

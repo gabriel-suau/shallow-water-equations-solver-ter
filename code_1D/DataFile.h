@@ -13,7 +13,7 @@ private:
   // Paramètres généraux
   std::string _scenario;
   std::string _resultsDir;
-
+  
   // Mesh parameters
   double _xmin, _xmax;
   double _dx;
@@ -34,12 +34,9 @@ private:
 
   // Fréquence de sauvegarde de la solution
   int _saveFrequency;
-  
-  // // Boundary conditions (à choisir en fonction du scenario ?)
-  // std::string _velocityLeftBC;
-  // std::string _velocityRightBC;
-  // std::string _waterHeightLeftBC;
-  // std::string _waterHeightRightBC;
+
+  // Boundary conditions (Dirichlet or Neumann)
+  std::string _leftBC, _rightBC;
 
   // Topography
   bool _isTopography;

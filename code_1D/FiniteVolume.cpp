@@ -161,9 +161,72 @@ void Rusanov::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
         }
     }
 
-  // Flux aux limites (à déterminer avec les CL)
-  _fluxVector.row(0) << 0., 0.;
-  _fluxVector.row(nCells) << 0., 0.;
+  // Flux en entrée (à déterminer avec les CL)
+  double hg(_function->dirichletFunction(_DF->getXmin(), 0.)(0));
+  double qg(_function->dirichletFunction(_DF->getXmin(), 0.)(1) * hg);
+  double hd(Sol(0,0));
+  double qd(Sol(0,1));
+  // Valeurs propres (pas tout à fait, mais bon...)
+  double lambda1(abs(qg/hg) + sqrt(g * hg));
+  double lambda2(abs(qd/hd) + sqrt(g * hd));
+  double b;
+  
+  // Construit le flux
+  if (hg != 0. && hd != 0.)
+    {
+      b = std::max(lambda1,lambda2);
+      _fluxVector(0,0) = 0.5 * (qd + qg - b * (hd - hg));
+      _fluxVector(0,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) + pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
+    }
+  else if (hg < 1e-6 && hd != 0.)
+    {
+      b = lambda2;
+      _fluxVector(0,0) = 0.5 * (qd - b * hd);
+      _fluxVector(0,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) - b * (qd));
+    }
+  else if (hd < 1e-6 && hg != 0)
+    {
+      b = lambda1;
+      _fluxVector(0,0) = 0.5 * (qg + b * hg);
+      _fluxVector(0,1) = 0.5 * (pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (- qg));
+    }
+  else
+    {
+      _fluxVector.row(0) << 0., 0.;
+    }
+
+  // Flux en sortie (à déterminer avec les CL)
+  hg = Sol(nCells-1,0);
+  qg = Sol(nCells-1,1);
+  hd = Sol(nCells-1,0);
+  qd = Sol(nCells-1,1);
+  // Valeurs propres (pas tout à fait, mais bon...)
+  lambda1 = abs(qg/hg) + sqrt(g * hg);
+  lambda2 = abs(qd/hd) + sqrt(g * hd);
+  
+  // Construit le flux
+  if (hg != 0. && hd != 0.)
+    {
+      b = std::max(lambda1,lambda2);
+      _fluxVector(nCells,0) = 0.5 * (qd + qg - b * (hd - hg));
+      _fluxVector(nCells,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) + pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
+    }
+  else if (hg < 1e-6 && hd != 0.)
+    {
+      b = lambda2;
+      _fluxVector(nCells,0) = 0.5 * (qd - b * hd);
+      _fluxVector(nCells,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) - b * (qd));
+    }
+  else if (hd < 1e-6 && hg != 0)
+    {
+      b = lambda1;
+      _fluxVector(nCells,0) = 0.5 * (qg + b * hg);
+      _fluxVector(nCells,1) = 0.5 * (pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (- qg));
+    }
+  else
+    {
+      _fluxVector.row(nCells) << 0., 0.;
+    }
 }
 
 //--------------------------------------//

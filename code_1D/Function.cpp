@@ -14,7 +14,7 @@ Function::Function()
 }
 
 Function::Function(DataFile* DF, Mesh* mesh):
-  _DF(DF), _mesh(mesh), _xmin(mesh->getxMin()), _xmax(mesh->getxMax()), _nCells(mesh->getNumberOfCells()), _cellCenters(mesh->getCellCenters())
+  _DF(DF), _mesh(mesh), _xmin(mesh->getxMin()), _xmax(mesh->getxMax()), _g(_DF->getGravityAcceleration()), _nCells(mesh->getNumberOfCells()), _cellCenters(mesh->getCellCenters())
 {
 }
 
@@ -25,6 +25,7 @@ void Function::Initialize(DataFile* DF, Mesh* mesh)
   _mesh = mesh;
   _xmin = mesh->getxMin();
   _xmax = mesh->getxMax();
+  _g = DF->getGravityAcceleration();
   _nCells = mesh->getNumberOfCells();
   _cellCenters = mesh->getCellCenters();  
   this->Initialize();
@@ -52,6 +53,27 @@ void Function::Initialize()
       for (int i(0) ; i < _nCells ; ++i)
         {
           _topography(i,1) = 0.05 * (_cellCenters(i) - _xmin);
+        }
+    }
+  else if (_DF->getTopographyType() == "SineLinear")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _topography(i,1) = 0.05 * (_cellCenters(i) - _xmin) + 0.05*sin(20*M_PI*_cellCenters(i)/(_xmax - _xmin));
+        }
+    }
+  else if (_DF->getTopographyType() == "EllipticBump")
+    {
+      _topography.col(1).setZero();
+      double bumpCenter(_xmin + 0.75 * (_xmax - _xmin));
+      double bumpHeight(0.8);
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          double bumpFunction(bumpHeight - pow(_cellCenters(i) - bumpCenter,2));
+          if (bumpFunction > 0)
+            {
+              _topography(i,1) = bumpFunction;
+            }
         }
     }
   else if (_DF->getTopographyType() == "File")
@@ -85,6 +107,8 @@ void Function::Initialize()
       std::cout << termcolor::reset;
       exit(-1);
     }
+  std::cout << termcolor::green << "SUCCESS::TOPOGRAPHY : Topography was successfully built." << std::endl;
+  std::cout << termcolor::reset;
 
   // Initialise la condition initiale
   if (_DF->getScenario() == "ConstantWaterHeight")
@@ -153,15 +177,12 @@ void Function::Initialize()
     }
 
   // Logs de fin
-  std::cout << termcolor::green << "SUCCESS : Topography and Initial Conditions were successfully built." << std::endl;
+  std::cout << termcolor::green << "SUCCESS::SCENARIO : Initial Conditions was successfully built." << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
 
 void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
-  // Récupère la valeur de la gravité
-  double g(_DF->getGravityAcceleration());
-
   // Construit le terme source en fonction de la topographie.
   if (_DF->getTopographyType() == "FlatBottom")
     {
@@ -171,9 +192,31 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& S
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _source(i,1) = - g * Sol(i,0) * 0.05;
+          _source(i,1) = - _g * Sol(i,0) * 0.05;
         }
     }
+  else if (_DF->getTopographyType() == "SineLinear")
+    {
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _source(i,1) = - _g * Sol(i,0) * (0.05 + M_PI/(_xmax - _xmin)*cos(20*M_PI*_cellCenters(i)/(_xmax - _xmin)));
+        }
+    }
+  else if (_DF->getTopographyType() == "EllipticBump")
+    {
+      _source.setZero();
+      double bumpCenter(_xmin + 0.75 * (_xmax - _xmin));
+      double bumpHeight(0.8);
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          double bumpFunction(bumpHeight - pow(_cellCenters(i) - bumpCenter,2));
+          if (bumpFunction > 0)
+            {
+              _source(i,1) = _g * Sol(i,0) * 2. * (_cellCenters(i) - bumpCenter);
+            }
+        }
+    }
+
   // Pour un fichier de topographie, la dérivée est approchée par une formule de
   // différence finie centrée d'ordre deux à l'intérieur, et par une formule
   // décentrée d'ordre deux sur les bords
@@ -181,12 +224,12 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& S
     {
       double dx(_mesh->getSpaceStep());
       _source.col(0).setZero();
-      _source(0,1) = - g * Sol(0,0) * (_topography(1) - _topography(0))/(dx);
+      _source(0,1) = - _g * Sol(0,0) * (-_topography(2) + 4.*_topography(1) - 3.*_topography(0))/(2.*dx);
       for (int i(1) ; i < _nCells - 1 ; ++i)
         {
-          _source(i,1) = - g * Sol(i,0) * (_topography(i+1) - _topography(i-1))/(2. * dx);
+          _source(i,1) = - _g * Sol(i,0) * (_topography(i+1) - _topography(i-1))/(2. * dx);
         }
-      _source(_nCells - 1, 1) = - g * Sol(_nCells - 1,0) * (_topography(_nCells - 1) - _topography(_nCells - 2))/(dx);
+      _source(_nCells - 1, 1) = - _g * Sol(_nCells - 1,0) * (3.*_topography(_nCells - 1) - 4.*_topography(_nCells - 2) + _topography(_nCells - 3))/(2.*dx);
     }
   else
     {
@@ -202,7 +245,7 @@ Eigen::Vector2d Function::dirichletFunction(double x, double t)
   // Condition d'entrée
   if (x == _mesh->getxMin())
     {
-      
+      g << 1.5, 4.5;
     }
   // Condition de sortie
   if (x == _mesh->getxMax())

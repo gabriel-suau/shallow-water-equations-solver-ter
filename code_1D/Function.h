@@ -17,16 +17,17 @@ private:
 
   // Variables pratiques
   double _xmin, _xmax;
+  double _g;
   int _nCells;
   Eigen::VectorXd _cellCenters;
   
   // Condition initiale
   Eigen::Matrix<double, Eigen::Dynamic, 2> _Sol0;
   
-  // Topography (x,z) pour le terme source.
+  // Topographie (x,z) pour le terme source.
   Eigen::Matrix<double, Eigen::Dynamic, 2> _topography;
   Eigen::Matrix<double, Eigen::Dynamic, 2> _source;
-  
+
 public:
   // Constructeur
   Function();
@@ -40,9 +41,12 @@ public:
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getInitialCondition() const {return _Sol0;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getTopography() const {return _topography;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getSourceTerm() const {return _source;};
-
-  // Build le terme source
+  
+  // Construit le terme source
   void buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+
+  // Fonction flux du modèle (Saint-Venant 1D)
+  Eigen::Vector2d computeFlux(double h, double qx) const;
 
   // Conditions aux limites
   Eigen::Vector2d dirichletFunction(double x, double t);

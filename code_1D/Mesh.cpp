@@ -37,6 +37,6 @@ void Mesh::Initialize()
       _cellCenters(i) = _cellBoundaries(i) + 0.5 * _dx;
     }
   _cellBoundaries(_numberOfCells) = _xmax;
-  std::cout << termcolor::green << "SUCCESS : Mesh generated succesfully !" << std::endl;
+  std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }

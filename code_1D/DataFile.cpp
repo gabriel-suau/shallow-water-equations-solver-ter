@@ -17,7 +17,7 @@ DataFile::DataFile(const std::string& fileName):
 void DataFile::Initialize(const std::string& fileName)
 {
   _fileName = fileName;
-  _scenario = "none";
+  _scenario = "none";  
 }
 
 std::string DataFile::cleanLine(std::string &line)
@@ -138,7 +138,7 @@ void DataFile::readDataFile()
   std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
   std::cout << termcolor::reset;
 
-  // Pour le scénario LaSalie, impose la topographie
+  // Pour le scénario LaSalie, impose la topographie et les CL
   if (_scenario == "LaSalie")
     {
       _isTopography = true;

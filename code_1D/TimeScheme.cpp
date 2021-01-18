@@ -42,11 +42,13 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
     {
       if (_Sol.row(i)(0) > 1e-14)
         {
-          outputFile << cellCenters(i) << " " << _Sol.row(i)(0) + _function->getTopography().row(i)(1) << " " << _Sol.row(i)(1)/_Sol.row(i)(0) << std::endl; 
+          outputFile << cellCenters(i) << " " << _Sol(i,0) + _function->getTopography()(i,1) << " " << _Sol(i,1)/_Sol(i,0) << std::endl;
+          // outputFile << cellCenters(i) << " " << _Sol(i,0) << " " << _Sol(i,1)/_Sol(i,0) << std::endl;
         }
       else
         {
-          outputFile << cellCenters(i) << " " << _function->getTopography().row(i)(1) << " " << 0. << std::endl; 
+          outputFile << cellCenters(i) << " " << _function->getTopography()(i,1) << " " << 0. << std::endl;
+          // outputFile << cellCenters(i) << " " << 0. << " " << 0. << std::endl;
         }
     }
 }
@@ -71,14 +73,12 @@ void TimeScheme::solve()
   std::ofstream topoFile(topoFileName, std::ios::out);
   for (int i(0) ; i < _Sol.rows() ; ++i)
     {
-      topoFile << _function->getTopography().row(i)(0) << " " << _function->getTopography().row(i)(1) << std::endl;
+      topoFile << _function->getTopography()(i,0) << " " << _function->getTopography()(i,1) << std::endl;
     }
   
   // Boucle en temps
   while (_currentTime < _finalTime)
     {
-      _function->buildSourceTerm(_Sol);
-      _finVol->buildFluxVector(_Sol);
       oneStep();
       ++n;
       _currentTime += _timeStep;
@@ -124,15 +124,20 @@ void ExplicitEuler::oneStep()
   double dt(_timeStep);
   double dx(_mesh->getSpaceStep());
   int nCells(_mesh->getNumberOfCells());
-  Eigen::Matrix<double, Eigen::Dynamic, 2> fluxVector(_finVol->getFluxVector());
+  // Construction du terme source et du flux numérique
+  _function->buildSourceTerm(_Sol);
+  _finVol->buildFluxVector(_Sol);
   Eigen::Matrix<double, Eigen::Dynamic, 2> source(_function->getSourceTerm());
-  
+  Eigen::Matrix<double, Eigen::Dynamic, 2> fluxVector(_finVol->getFluxVector());
+  // Mise à jour de la solution sur chaque cellules
   for (int i(0) ; i < nCells ; ++i)
     {
-      _Sol.row(i) += -dt * (fluxVector.row(i+1) - fluxVector.row(i)) / dx + dt * source.row(i);
+      _Sol.row(i) += - dt*(fluxVector.row(i+1) - fluxVector.row(i))/dx + dt*source.row(i);
     }
-  _Sol.row(0) = _Sol.row(1);
-  _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
+  // Conditions aux limites
+  // _Sol.row(0) = _Sol.row(1);
+  // _Sol.row(nCells - 1) = _Sol.row(nCells - 2);
+  
   // _Sol.row(0)(0) = _Sol.row(1)(0);
   // _Sol.row(0)(1) = -_Sol.row(1)(1);
   // _Sol.row(nCells - 1)(0) = _Sol.row(nCells - 2)(0);

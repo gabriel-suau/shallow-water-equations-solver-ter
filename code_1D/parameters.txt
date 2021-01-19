@@ -18,7 +18,7 @@ ExplicitEuler
 #        Rusanov
 #        HLL
 NumericalFlux
-LaxFriedrichs
+Rusanov
 
 # Paramètres du maillage
 xmin
@@ -26,14 +26,14 @@ xmin
 xmax
 10.
 dx
-0.02
+0.01
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-10.
+2.
 TimeStep
 0.001
 CFL
@@ -50,7 +50,7 @@ GravityAcceleration
 
 # Répertoire où stocker les résultats
 ResultsDir
-results
+resultsTest
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency

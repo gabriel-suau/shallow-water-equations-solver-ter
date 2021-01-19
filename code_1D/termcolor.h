@@ -1,7 +1,7 @@
 
 //--------------------------------------------------------------------------------------------------------------
 // Cette mini-librairie header permet d'afficher des messages colorés facilement sur le terminal.
-// ELle nous est utile pour proposer des logs plus visuels, notamment sur la convergence des méthodes.
+// ELle nous est utile pour proposer des logs plus visuels.
 //
 // La librairie est disponible sur GitHub --> https://github.com/ikalnytskyi/termcolor
 //--------------------------------------------------------------------------------------------------------------

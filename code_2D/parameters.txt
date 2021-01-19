@@ -1,0 +1,117 @@
+###################################################
+###             Fichier de paramètres           ###
+###################################################
+
+
+###################################################
+###             Paramètres numériques           ###
+###################################################
+
+# Schéma en temps. Valeurs possibles :
+#        ExplicitEuler
+#        ImplicitEuler !!! NE FONCTIONNE PAS !!!
+TimeScheme
+ExplicitEuler
+
+# Choix du flux numérique. Valeurs possibles :
+#        LaxFriedrichs
+#        Rusanov
+#        HLL
+NumericalFlux
+LaxFriedrichs
+
+# Fichier du maillage
+MeshFile
+Meshes/square.mesh
+
+# Paramètres temporels.
+# CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
+InitialTime
+0.
+FinalTime
+10.
+TimeStep
+0.001
+CFL
+1.0
+
+# Accélération de la pesanteur
+GravityAcceleration
+9.81
+
+
+###############################################################
+###             Sauvegarde/Stockage des résultats           ###
+###############################################################
+
+# Répertoire où stocker les résultats
+ResultsDir
+results
+
+# Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
+SaveFrequency
+20
+
+
+###################################
+###             CI/CL           ###
+###################################
+
+# Choix d'un scenario. Le choix d'un scenario impose la CI.
+# Attention : le scénario LaSalie impose aussi la topographie et les CL. Valeurs possibles
+#       None                    -> Pas de scenario, rien ne se passe
+#       SinePerturbation        -> CI=1/2 période de sinus au milieu du domaine.
+#       SineWave                -> CI=sinus
+#       PeriodicWaves           -> CL entrée h = 2 + sin(t), v = 0
+#       RestingLake             -> 
+#       ConstantWaterHeight     -> 
+#       DamBreak                -> Rupture de barrage
+#       HydraulicJump           -> Ressaut hydraulique
+#       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
+Scenario
+DamBreak
+
+########################################
+###             Topography           ###
+########################################
+
+# Booléen indiquant s'il y a de la topographie. Valeurs possibles
+#         0 -> Fond plat
+#         1 -> Choisit la topo en fonction de la valeur de TopographyType
+IsTopography
+0
+
+# Type de topographie. Valeurs possibles :
+#      FlatBottom      -> Fond plat
+#      LinearUp        -> Droite ascendante (0 en xmin et 0.05 * xmax  en xmax)
+#      LinearDown      -> Droite descendante
+#      SineLinearUp    -> Pareil que LinearUp, mais avec des bosses en sinus...
+#      SineLinearDown  -> Pareil que LinearDown, mais avec des bosses en sinus...
+#      Parabola        -> Parabole (x + (xmax+xmin)/2)^2
+#      EllipticBump    -> Bosse elliptique
+#      File            -> Lire dans le fichier indiqué dans TopographyFile
+TopographyType
+FlatBottom
+
+# Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
+# Format csv
+TopographyFile
+topography_la_salie.csv
+
+
+# PAS ENCORE IMPLÉMENTÉ
+
+########################################
+###             Friction             ###
+########################################
+
+# Booléen indiquant s'il y a des frottements ou pas. PAS ENCORE IMPLÉMENTÉ.
+# Valeurs possibles
+#         0 -> Sans frottements
+#         1 -> Avec frottements
+isFriction
+0
+
+# Valeur du coefficient de frottement
+COF
+1e-5

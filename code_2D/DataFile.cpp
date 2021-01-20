@@ -119,6 +119,17 @@ void DataFile::readDataFile()
         {
           data_file >> _topographyFile;
         }
+      if (proper_line.find("BoundaryConditions") != std::string::npos)
+        {
+          int nBoundaries;
+          data_file >> nBoundaries;
+          _boundaryConditionReference.resize(nBoundaries);
+          _boundaryConditionType.resize(nBoundaries);
+          for (int i(0) ; i<nBoundaries ; i++)
+          {
+            data_file >> _boundaryConditionReference[i] >> _boundaryConditionType[i];
+          }
+        }
     }
 
   // Création et nettoyage du dossier de résultats

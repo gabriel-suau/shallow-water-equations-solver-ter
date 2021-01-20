@@ -99,6 +99,16 @@ TopographyFile
 topography_la_salie.csv
 
 
+# Conditions aux limites
+#      Neumann
+#      Dirichlet
+BoundaryConditions
+4
+1 Neumann
+2 Neumann
+3 Neumann
+4 Dirichlet
+
 # PAS ENCORE IMPLÉMENTÉ
 
 ########################################

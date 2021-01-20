@@ -1,5 +1,5 @@
 // À adapter en fonction du raffinement de maillage souhaité
-h = 0.02;
+h = 0.5;
 
 Point(1) = {0,0,0,h};
 Point(2) = {0,1,0,h};
@@ -11,3 +11,13 @@ Line(3) = {3,4};
 Line(4) = {4,2};
 Line Loop(1) = {1:4};
 Plane Surface(1) = {1};
+//+
+Show "*";
+//+
+Show "*";
+//+
+Show "*";
+//+
+Show "*";
+//+
+Show "*";

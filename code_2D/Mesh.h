@@ -105,6 +105,9 @@ public:
   double getArea() const {return _area;};
   const Eigen::Vector3i& getVerticesReference() const {return _verticesIndex;};
   const Eigen::Vector2d& getCenter() const {return _center;};
+
+  // Printer
+  void print() const;
 };
 
 

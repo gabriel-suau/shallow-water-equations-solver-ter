@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include "Eigen/Eigen/Dense"
 
 class DataFile
 {
@@ -38,6 +40,11 @@ private:
   std::string _topographyType;
   std::string _topographyFile;
 
+  // Conditions limites
+  Eigen::VectorXi _boundaryConditionReference;
+  std::vector<std::string> _boundaryConditionType;
+  
+
 public:
   // Constructeurs
   DataFile();
@@ -71,6 +78,8 @@ public:
   bool isTopography() const {return _isTopography;};
   const std::string& getTopographyType() const {return _topographyType;};
   const std::string& getTopographyFile() const {return _topographyFile;};
+  const Eigen::VectorXi& getBoundaryConditionReference() const {return _boundaryConditionReference;};
+  const std::vector<std::string>& getBoundaryConditionType() const {return _boundaryConditionType;};
 
   // Affichage des paramètres
   void printData() const;

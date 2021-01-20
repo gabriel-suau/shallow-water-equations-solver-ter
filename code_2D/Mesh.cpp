@@ -24,6 +24,7 @@ void Vertex::print() const
   std::cout << "(x,y,index) = (" << _coordinates(0)  << "," << _coordinates(1) << "," << _index << ")" << std::endl;
 }
 
+
 //-----------------------------------------------//
 //---------------------Edges---------------------//
 //-----------------------------------------------//
@@ -45,7 +46,13 @@ Edge::Edge(int vertex1, int vertex2, int index, const std::string& boundaryCondi
       _verticesIndex(0) = vertex1;
       _verticesIndex(1) = vertex2;
     }
-};
+}
+
+void Edge::print() const
+{
+  std::cout << "(vertex1,vertex2,index) = (" << _verticesIndex(0)  << "," << _verticesIndex(1) << "," << _index << ")" << std::endl;
+}
+
 
 //---------------------------------------------------//
 //---------------------Triangles---------------------//
@@ -57,6 +64,11 @@ Triangle::Triangle()
 Triangle::Triangle(int vertex1,int vertex2,int vertex3,int index):
   _index(index), _verticesIndex(vertex1, vertex2, vertex3)
 {
+}
+
+void Triangle::print() const
+{
+  std::cout << "(vertex1,vertex2,vertex3,index) = (" << _verticesIndex(0)  << "," << _verticesIndex(1) << "," << _verticesIndex(2) << "," << _index << ")" << std::endl;
 }
 
 //----------------------------------------------//
@@ -122,11 +134,27 @@ void Mesh::Initialize()
         }
       else if (line.find("Edges") != std::string::npos)
         {
-          // TODO
+          meshStream >> _numberOfEdges;
+          _edges.resize(_numberOfEdges);
+          for (int i(0) ; i < _numberOfEdges ; ++i)
+            {
+              int vertex1, vertex2;
+              int index;
+              meshStream >> vertex1 >> vertex2 >> index;
+              _edges[i] = Edge(vertex1, vertex2, index,_DF->getBoundaryConditionType()[index]);
+            }
         }
       else if (line.find("Triangles") != std::string::npos)
         {
-          // TODO
+          meshStream >> _numberOfTriangles;
+          _triangles.resize(_numberOfTriangles);
+          for (int i(0) ; i < _numberOfTriangles ; ++i)
+            {
+              int vertex1, vertex2, vertex3;
+              int index;
+              meshStream >> vertex1 >> vertex2 >> vertex3 >> index;
+              _triangles[i] = Triangle(vertex1, vertex2, vertex3, index);
+            }
         }
     }
   std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;

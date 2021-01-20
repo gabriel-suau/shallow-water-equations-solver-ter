@@ -1,6 +1,6 @@
 # TER
 
-C++ solver for the 1D Saint-Venant equations with topography and without friction using the Finite Volumes Method. 
+C++ solver for the 1D/2D Saint-Venant equations with topography and without friction using the Finite Volumes Method. 
 
 Work in progress...
 
@@ -17,12 +17,17 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 * Gabriel Suau
 * Lucas Trautmann
 
-## Check-list
+## Check-list 1D
 - [x] Organize the code and create a Makefile.
 - [x] Implement basic 1D Finite Volumes schemes.
-- [ ] Create test cases for verification.
-- [x] Create experimental data files for validation.
-- [ ] Document the code.
+- [x] Verification (Dam Break problem).
+- [ ] Validation (experimental data).
+
+## Check-list 2D
+- [x] Organize the code and create a Makefile.
+- [ ] Implement basic 2D Finite Volumes schemes.
+- [ ] Verification (Dam Break problem).
+- [ ] Validation (experimental data).
 
 ## Main features
 * Numerical fluxes : Lax-Friedrichs, Rusanov and HLL.
@@ -32,7 +37,6 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 * Scenarios : Resting lake, Dam Break, Sine Perturbation...
 
 ## Additional optional features
-- [ ] 2D model ?
 - [ ] Implement more robust Finite Volumes schemes (well-balanced schemes) ?
 - [ ] Parallelize the code ?
 - [ ] Add a friction source term ?

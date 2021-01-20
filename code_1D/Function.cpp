@@ -100,7 +100,7 @@ void Function::Initialize()
       if (!topoStream.is_open())
         {
           std::cout << termcolor::red << "ERROR::TOPOGRAPHY : Unable to open the topography file : " << topoFile << std::endl;
-          std::cout << termcolor::reset;
+          std::cout << termcolor::reset << "====================================================================================================" << std::endl;
           exit(-1);
         }
       else

@@ -1,10 +1,12 @@
 #include "Mesh.h"
+#include "DataFile.h"
+#include "termcolor.h"
 
 #include "Eigen/Eigen/Dense"
 #include "Eigen/Eigen/Sparse"
-#include "DataFile.h"
-#include "termcolor.h"
+
 #include <fstream>
+#include <vector>
 
 //--------------------------------------------------//
 //---------------------Vertices---------------------//
@@ -33,7 +35,7 @@ Edge::Edge():
 {
 }
 
-Edge::Edge(int vertex1, int vertex2, int index, const std::string& boundaryCondition):
+Edge::Edge(int vertex1, int vertex2, int index, std::string boundaryCondition):
   _index(index), _t1(-1), _t2(-1), _boundaryCondition(boundaryCondition)
 {
   if (vertex1 > vertex2)
@@ -79,7 +81,7 @@ Mesh::Mesh()
 }
 
 Mesh::Mesh(DataFile* DF):
-  _DF(DF), _meshFile(_DF->getMeshFile())
+  _DF(DF), _meshFile(_DF->getMeshFile()), _boundaryConditionReference(_DF->getBoundaryConditionReference()), _boundaryConditionType(_DF->getBoundaryConditionType())
 {
 }
 
@@ -87,6 +89,8 @@ void Mesh::Initialize(DataFile* DF)
 {
   _DF = DF;
   _meshFile = _DF->getMeshFile();
+  _boundaryConditionReference = _DF->getBoundaryConditionReference();
+  _boundaryConditionType = _DF->getBoundaryConditionType();
   this->Initialize();
 }
 
@@ -97,7 +101,8 @@ void Mesh::Initialize()
 
   std::ifstream meshStream(_meshFile);
   std::string line;
-  int dimension(3), numberOfVertices(0);
+  int dimension(3), nBoundaryEdges(0);
+  std::vector<Edge> boundaryEdges;
 
   // Vérifie que le fichier est bien ouvert.
   if (!meshStream.is_open())
@@ -122,28 +127,31 @@ void Mesh::Initialize()
       // Création des sommets du maillage
       else if (line.find("Vertices") != std::string::npos)
         {
-          meshStream >> numberOfVertices;
-          _vertices.resize(numberOfVertices);
-          for (int i(0) ; i < numberOfVertices ; ++i)
+          meshStream >> _numberOfVertices;
+          _vertices.resize(_numberOfVertices);
+          for (int i(0) ; i < _numberOfVertices ; ++i)
             {
-              double x, y, z;
-              int index;
+              double x(0.), y(0.), z(0.);
+              int index(0);
               meshStream >> x >> y >> z >> index;
               _vertices[i] = Vertex(x, y, index);
             }
         }
+      // Création des arêtes extérieures du maillage
       else if (line.find("Edges") != std::string::npos)
         {
-          meshStream >> _numberOfEdges;
-          _edges.resize(_numberOfEdges);
-          for (int i(0) ; i < _numberOfEdges ; ++i)
+          meshStream >> nBoundaryEdges;
+          boundaryEdges.resize(nBoundaryEdges);
+          for (int i(0) ; i < nBoundaryEdges ; ++i)
             {
-              int vertex1, vertex2;
-              int index;
+              int vertex1(0), vertex2(0);
+              int index(0);
               meshStream >> vertex1 >> vertex2 >> index;
-              _edges[i] = Edge(vertex1, vertex2, index,_DF->getBoundaryConditionType()[index]);
+              std::string BCType(_boundaryConditionType[index - 1]);
+              boundaryEdges[i] = Edge(vertex1, vertex2, index, BCType);
             }
         }
+      // Création des triangles du maillage
       else if (line.find("Triangles") != std::string::npos)
         {
           meshStream >> _numberOfTriangles;
@@ -157,6 +165,11 @@ void Mesh::Initialize()
             }
         }
     }
+
+  // Création du vecteur _edges.
+  _numberOfEdges = _numberOfTriangles + _numberOfVertices - 1;
+  _edges.resize(_numberOfEdges);
+  
   std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }

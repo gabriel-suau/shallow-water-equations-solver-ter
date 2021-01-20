@@ -59,7 +59,7 @@ private:
 public:
   // Constructeurs
   Edge();
-  Edge(int vertex1, int vertex2, int index, const std::string& boundaryCondition);
+  Edge(int vertex1, int vertex2, int index, std::string boundaryCondition);
   
   // Destructeur
   ~Edge() = default;
@@ -137,6 +137,10 @@ private:
   Eigen::Matrix<double, Eigen::Dynamic, 2> _edgesNormal;
   Eigen::VectorXd _edgesLength;
 
+  // Conditions aux limites
+  Eigen::VectorXi _boundaryConditionReference;
+  std::vector<std::string> _boundaryConditionType;
+  
 public:
   // Constructeurs
   Mesh();

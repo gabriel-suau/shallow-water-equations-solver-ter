@@ -1,10 +1,11 @@
 #ifndef DATA_FILE_H
 #define DATA_FILE_H
 
+#include "Eigen/Eigen/Dense"
+
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Eigen/Eigen/Dense"
 
 class DataFile
 {
@@ -40,7 +41,8 @@ private:
   std::string _topographyType;
   std::string _topographyFile;
 
-  // Conditions limites
+  // Conditions aux limites
+  int _nBoundaries;
   Eigen::VectorXi _boundaryConditionReference;
   std::vector<std::string> _boundaryConditionType;
   

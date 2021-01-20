@@ -1,5 +1,8 @@
 #include "DataFile.h"
 #include "termcolor.h"
+
+#include "Eigen/Eigen/Dense"
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -121,13 +124,12 @@ void DataFile::readDataFile()
         }
       if (proper_line.find("BoundaryConditions") != std::string::npos)
         {
-          int nBoundaries;
-          data_file >> nBoundaries;
-          _boundaryConditionReference.resize(nBoundaries);
-          _boundaryConditionType.resize(nBoundaries);
-          for (int i(0) ; i<nBoundaries ; i++)
+          data_file >> _nBoundaries;
+          _boundaryConditionReference.resize(_nBoundaries);
+          _boundaryConditionType.resize(_nBoundaries);
+          for (int i(0) ; i<_nBoundaries ; i++)
           {
-            data_file >> _boundaryConditionReference[i] >> _boundaryConditionType[i];
+            data_file >> _boundaryConditionReference(i) >> _boundaryConditionType[i];
           }
         }
     }
@@ -166,21 +168,26 @@ void DataFile::printData() const
 {
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Printing parameters of " << _fileName << std::endl;
-  std::cout << "Mesh              = Get from file" << std::endl;
-  std::cout << "Mesh file         = " << _meshFile << std::endl;
-  std::cout << "Time Scheme       = " << _timeScheme << std::endl;
-  std::cout << "Initial time      = " << _initialTime << std::endl;
-  std::cout << "Final time        = " << _finalTime << std::endl;
-  std::cout << "Time step         = " << _timeStep << std::endl;
-  std::cout << "Gravity           = " << _g << std::endl;
-  std::cout << "Numerical Flux    = " << _numericalFlux << std::endl;
-  std::cout << "Results directory = " << _resultsDir << std::endl;
-  std::cout << "Save Frequency    = " << _saveFrequency << std::endl;
-  std::cout << "Scenario          = " << _scenario << std::endl;
-  std::cout << "Topography        = " << _topographyType << std::endl;
+  std::cout << "Mesh                = Get from file" << std::endl;
+  std::cout << "Mesh file           = " << _meshFile << std::endl;
+  std::cout << "Boundary conditions = " << _nBoundaries << std::endl;
+  for (int i(0) ; i < _nBoundaries ; ++i)
+    {
+      std::cout << "   " << _boundaryConditionReference(i) << " " << _boundaryConditionType[i] << std::endl; 
+    }
+  std::cout << "Time Scheme         = " << _timeScheme << std::endl;
+  std::cout << "Initial time        = " << _initialTime << std::endl;
+  std::cout << "Final time          = " << _finalTime << std::endl;
+  std::cout << "Time step           = " << _timeStep << std::endl;
+  std::cout << "Gravity             = " << _g << std::endl;
+  std::cout << "Numerical Flux      = " << _numericalFlux << std::endl;
+  std::cout << "Results directory   = " << _resultsDir << std::endl;
+  std::cout << "Save Frequency      = " << _saveFrequency << std::endl;
+  std::cout << "Scenario            = " << _scenario << std::endl;
+  std::cout << "Topography          = " << _topographyType << std::endl;
   if (_topographyType == "File")
     {
-      std::cout << "Topography file   = " << _topographyFile << std::endl;
+      std::cout << "Topography file     = " << _topographyFile << std::endl;
     }
   std::cout << "====================================================================================================" << std::endl << std::endl;
 }

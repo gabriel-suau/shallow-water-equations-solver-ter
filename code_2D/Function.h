@@ -23,8 +23,8 @@ private:
   // Condition initiale
   Eigen::Matrix<double, Eigen::Dynamic, 3> _Sol0;
   
-  // Topographie (x,z) pour le terme source.
-  Eigen::Matrix<double, Eigen::Dynamic, 3> _topography;
+  // Topographie pour le terme source.
+  Eigen::VectorXd _topography;
   Eigen::Matrix<double, Eigen::Dynamic, 3> _source;
 
 public:
@@ -38,7 +38,7 @@ public:
 
   // Getters
   const Eigen::Matrix<double, Eigen::Dynamic, 3>& getInitialCondition() const {return _Sol0;};
-  const Eigen::Matrix<double, Eigen::Dynamic, 3>& getTopography() const {return _topography;};
+  const Eigen::VectorXd& getTopography() const {return _topography;};
   const Eigen::Matrix<double, Eigen::Dynamic, 3>& getSourceTerm() const {return _source;};
   
   // Construit le terme source

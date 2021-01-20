@@ -14,7 +14,7 @@ Function::Function()
 }
 
 Function::Function(DataFile* DF, Mesh* mesh):
-  _DF(DF), _mesh(mesh), _g(_DF->getGravityAcceleration())
+  _DF(DF), _mesh(mesh), _g(_DF->getGravityAcceleration()), _nCells(_mesh->getNumberOfTriangles()), _cellCenters(_mesh->getTrianglesCenter())
 {
 }
 
@@ -24,6 +24,8 @@ void Function::Initialize(DataFile* DF, Mesh* mesh)
   _DF = DF;
   _mesh = mesh;
   _g = DF->getGravityAcceleration();
+  _nCells = _mesh->getNumberOfTriangles();
+  _cellCenters = _mesh->getTrianglesCenter();
   this->Initialize();
 }
 
@@ -35,14 +37,13 @@ void Function::Initialize()
   
   // Resize la condition initiale, la topographie et le terme source
   _Sol0.resize(_nCells, 3);
-  _topography.resize(_nCells, 3);
+  _topography.resize(_nCells);
   _source.resize(_nCells, 3);
 
   // Initialise la topographie
-  _topography.leftCols(2) = _cellCenters;
   if (_DF->getTopographyType() == "FlatBottom")
     {
-      _topography.col(3).setZero();
+      _topography.setZero();
     }
   else if (_DF->getTopographyType() == "LinearUp")
     {
@@ -62,29 +63,7 @@ void Function::Initialize()
     }
   else if (_DF->getTopographyType() == "File")
     {
-      const std::string topoFile(_DF->getTopographyFile());
-      std::ifstream topoStream(topoFile);
-      std::string line, properLine;
-      double dummy1, dummy2;
-      int i(0);
-      if (!topoStream.is_open())
-        {
-          std::cout << termcolor::red << "ERROR::TOPOGRAPHY : Unable to open the topography file : " << topoFile << std::endl;
-          std::cout << termcolor::reset;
-          exit(-1);
-        }
-      else
-        {
-          std::cout << "Building the topography from file : " << topoFile << std::endl;
-        }
-      
-      while (getline(topoStream, line))
-        {
-          properLine = regex_replace(line, std::regex(",") , std::string(" "));
-          std::stringstream ss(properLine);
-          ss >> dummy1 >> dummy2 >> _topography(i,2);
-          ++i;
-        }
+      // TODO
     }
   else
     {
@@ -160,8 +139,7 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 3>& S
     }
 
   // Pour un fichier de topographie, la dérivée est approchée par une formule de
-  // différence finie centrée d'ordre deux à l'intérieur, et par une formule
-  // décentrée d'ordre deux sur les bords
+  // différence finie ?
   else if (_DF->getTopographyType() == "File")
     {
       // TODO

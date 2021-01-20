@@ -37,9 +37,93 @@ void TimeScheme::Initialize(DataFile* DF, Mesh* mesh, Function* function, Finite
 void TimeScheme::saveCurrentSolution(std::string& fileName) const
 {
   std::ofstream outputFile(fileName, std::ios::out);
+  outputFile.precision(7);
   Eigen::Matrix<double, Eigen::Dynamic, 2> cellCenters (_mesh->getTrianglesCenter());
 
-  // TODO
+  // Vérifications
+  if (_Sol.size() != _mesh->getNumberOfTriangles())
+    {
+      std::cout << termcolor::red << "ERROR::TIMESCHEME : The size of the solution is not the same that the number of triangles !" << std::endl;
+      std::cout << termcolor::reset << "====================================================================================================" << std::endl;
+      exit(-1);
+    }
+
+  // Informations générales
+  outputFile << "# vtk DataFile Version 3.0 " << std::endl;
+  outputFile << "2D Unstructured Grid" << std::endl;
+  outputFile << "ASCII" << std::endl;
+  outputFile << "DATASET UNSTRUCTURED_GRID" << std::endl;
+
+  // Sauvegarde des sommets
+  int nbVertices(_mesh->getNumberOfVertices());
+  outputFile << "POINTS " << nbVertices << " float " << std::endl;
+  for (int i(0) ; i < nbVertices ; ++i)
+    {
+      outputFile << _mesh->getVertices()[i].getCoordinates()[0] << " " << _mesh->getVertices()[i].getCoordinates()[1] << " 0." << std::endl;
+    }
+  outputFile << std::endl;
+
+  // Sauvegarde des cellules
+  int nbTriangles(_mesh->getNumberOfTriangles());
+  outputFile << "CELLS " << nbTriangles << " " << nbTriangles * 4 << std::endl;
+  for (int i(0) ; i < nbTriangles ; ++i)
+    {
+      outputFile << 3 << _mesh->getTriangles()[i].getVerticesReference()[0]
+                 << " " << _mesh->getTriangles()[i].getVerticesReference()[1]
+                 << " " << _mesh->getTriangles()[i].getVerticesReference()[2] << std::endl;
+    }
+  outputFile << std::endl;
+
+  // Sauvegarde du type de cellules
+  outputFile << "CELL_TYPES " << nbTriangles << std::endl;
+  for (int i(0) ; i < nbTriangles ; ++i)
+    {
+      outputFile << 5 << std::endl;
+    }
+  outputFile << std::endl;
+
+  outputFile << "CELL_DATA " << nbTriangles << std::endl;
+
+  // Sauvegarde de la hauteur
+  outputFile << "SCALARS h float 1" << std::endl;
+  outputFile << "LOOKUP_TABLE default" << std::endl;
+  for (int i(0) ; i < nbTriangles ; ++i)
+    {
+      outputFile << _Sol(i,0) << std::endl;
+    }
+  outputFile << std::endl;
+
+  // Sauvegarde de u
+  outputFile << "SCALARS u float 1" << std::endl;
+  outputFile << "LOOKUP_TABLE default" << std::endl;
+  for (int i(0) ; i < nbTriangles ; ++i)
+    {
+      if (_Sol(i,0) > 1e-10)
+        {
+          outputFile << _Sol(i,1)/_Sol(i,0) << std::endl; 
+        }
+      else
+        {
+          outputFile << 0. << std::endl;
+        }
+    }
+  outputFile << std::endl;
+
+  // Sauvegarde de v
+  outputFile << "SCALARS v float 1" << std::endl;
+  outputFile << "LOOKUP_TABLE default" << std::endl;
+  for (int i(0) ; i < nbTriangles ; ++i)
+    {
+      if (_Sol(i,0) > 1e-10)
+        {
+          outputFile << _Sol(i,2)/_Sol(i,0) << std::endl; 
+        }
+      else
+        {
+          outputFile << 0. << std::endl;
+        }
+    }
+  outputFile << std::endl;
 }
 
 void TimeScheme::solve()
@@ -56,14 +140,6 @@ void TimeScheme::solve()
   // Sauvegarde la condition initiale
   std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n) + ".vtk");
   saveCurrentSolution(fileName);
-
-  // Sauvegarde la topographie
-  std::string topoFileName(resultsDir + "/topography.txt");
-  std::ofstream topoFile(topoFileName, std::ios::out);
-  for (int i(0) ; i < _Sol.rows() ; ++i)
-    {
-      topoFile << _function->getTopography()(i,0) << " " << _function->getTopography()(i,1) << _function->getTopography()(i,2) << std::endl;
-    }
   
   // Boucle en temps
   while (_currentTime < _finalTime)
@@ -82,7 +158,7 @@ void TimeScheme::solve()
     }
   
   // Logs de fin
-  std::cout << termcolor::green << "TIMESCHEME::SUCCESS : Solved 1D St-Venant equations successfully !" << std::endl;
+  std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Solved 2D St-Venant equations successfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
 

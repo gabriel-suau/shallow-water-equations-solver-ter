@@ -17,9 +17,9 @@ protected:
   Function* _function;
   FiniteVolume* _finVol;
 
-  // Vecteur solution
+  // Solution
   Eigen::Matrix<double, Eigen::Dynamic, 3> _Sol;
-
+  
   // Paramètres de temps
   double _timeStep;
   double _initialTime;

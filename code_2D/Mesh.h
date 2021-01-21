@@ -72,7 +72,20 @@ public:
   const Eigen::Vector2i& getVerticesIndex() const {return _verticesIndex;};
   const Eigen::Vector2d& getNormal() const {return _edgeNormal;};
   const Eigen::Vector2d& getCenter() const {return _edgeCenter;};
+  const std::string& getBoundaryCondition() const {return _boundaryCondition;};
 
+  // Add triangle
+  void addTriangle(int t)
+  {
+    if (_t1 == -1)
+      {
+        _t1 = t;
+      }
+    else
+      {
+        _t2 = t;
+      }
+  }
   // Printer
   void print() const;
 };
@@ -166,6 +179,11 @@ public:
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getEdgesCenter() const {return _edgesCenter;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getEdgesNormal() const {return _edgesNormal;};
   const Eigen::VectorXd& getEdgesLength() const {return _edgesLength;};
+
+  // Useful methods
+  void addEdge(const Edge& edge, int nt, std::vector<int>& headMinv, std::vector<int>& nextEdge, int& nbEdge);
+  void buildTrianglesCenterAndArea();
+  void buildEdgesNormalAndLengthAndCenter();
 
   // Printer
   void printParameters() const;

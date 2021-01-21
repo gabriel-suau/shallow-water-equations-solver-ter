@@ -41,7 +41,7 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
   Eigen::Matrix<double, Eigen::Dynamic, 2> cellCenters (_mesh->getTrianglesCenter());
 
   // Vérifications
-  if (_Sol.size() != _mesh->getNumberOfTriangles())
+  if (_Sol.rows() != _mesh->getNumberOfTriangles())
     {
       std::cout << termcolor::red << "ERROR::TIMESCHEME : The size of the solution is not the same that the number of triangles !" << std::endl;
       std::cout << termcolor::reset << "====================================================================================================" << std::endl;
@@ -68,7 +68,7 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
   outputFile << "CELLS " << nbTriangles << " " << nbTriangles * 4 << std::endl;
   for (int i(0) ; i < nbTriangles ; ++i)
     {
-      outputFile << 3 << _mesh->getTriangles()[i].getVerticesReference()[0]
+      outputFile << 3 << " " << _mesh->getTriangles()[i].getVerticesReference()[0]
                  << " " << _mesh->getTriangles()[i].getVerticesReference()[1]
                  << " " << _mesh->getTriangles()[i].getVerticesReference()[2] << std::endl;
     }
@@ -100,7 +100,7 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
     {
       if (_Sol(i,0) > 1e-10)
         {
-          outputFile << _Sol(i,1)/_Sol(i,0) << std::endl; 
+          outputFile << _Sol(i,1)/_Sol(i,0) << std::endl;
         }
       else
         {
@@ -116,7 +116,7 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
     {
       if (_Sol(i,0) > 1e-10)
         {
-          outputFile << _Sol(i,2)/_Sol(i,0) << std::endl; 
+          outputFile << _Sol(i,2)/_Sol(i,0) << std::endl;
         }
       else
         {
@@ -136,11 +136,11 @@ void TimeScheme::solve()
   int n(0);
   std::string resultsDir(_DF->getResultsDirectory());
   std::string fluxName(_finVol->getFluxName());
-  
+
   // Sauvegarde la condition initiale
   std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n) + ".vtk");
   saveCurrentSolution(fileName);
-  
+
   // Boucle en temps
   while (_currentTime < _finalTime)
     {
@@ -153,10 +153,10 @@ void TimeScheme::solve()
         {
           std::cout << "Saving solution at t = " << _currentTime << std::endl;
           std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".vtk");
-          saveCurrentSolution(fileName); 
+          saveCurrentSolution(fileName);
         }
     }
-  
+
   // Logs de fin
   std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Solved 2D St-Venant equations successfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
@@ -182,7 +182,7 @@ void ExplicitEuler::Initialize(DataFile* DF, Mesh* mesh, Function* function, Fin
   _timeStep = DF->getTimeStep();
   _initialTime = DF->getInitialTime();
   _finalTime = DF->getFinalTime();
-  _currentTime = _initialTime; 
+  _currentTime = _initialTime;
 }
 
 void ExplicitEuler::oneStep()

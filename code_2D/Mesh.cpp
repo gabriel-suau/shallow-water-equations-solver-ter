@@ -319,6 +319,9 @@ void Mesh::Initialize()
           addEdge(edge, i, headMinv, nextEdge, nbEdges);
         }
     }
+
+  buildTrianglesCenterAndArea();
+  buildEdgesNormalAndLengthAndCenter();
   
   std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;

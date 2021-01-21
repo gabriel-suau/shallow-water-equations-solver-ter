@@ -94,7 +94,17 @@ void Function::Initialize()
     }
   else if (_DF->getScenario() == "DamBreak")
     {
-      // TODO
+      for (int i(0); i < _nCells; i++)
+        {
+          if (_mesh->getTrianglesCenter()(i,1) < 0.5)
+            {
+              _Sol0(i,0) = 2;
+            }
+          else
+            {
+              _Sol0(i,0) = 1;
+            }
+        }
     }
   else if (_DF->getScenario() == "SineWave")
     {

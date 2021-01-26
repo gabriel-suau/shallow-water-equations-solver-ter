@@ -34,7 +34,6 @@ void Function::Initialize()
   // Logs de début
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Building topography and initial condition..." << std::endl;
-  
   // Resize la condition initiale, la topographie et le terme source
   _Sol0.resize(_nCells, 3);
   _topography.resize(_nCells);
@@ -71,44 +70,55 @@ void Function::Initialize()
       std::cout << termcolor::reset << "====================================================================================================" << std::endl;
       exit(-1);
     }
+
   std::cout << termcolor::green << "SUCCESS::TOPOGRAPHY : Topography was successfully built." << std::endl;
   std::cout << termcolor::reset;
 
   // Initialise la condition initiale
   if (_DF->getScenario() == "ConstantWaterHeight")
     {
-      _Sol0.leftCols(2).setZero();
+      _Sol0.rightCols(2).setZero();
+
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0(i,0) = 3.;
+          _Sol0(i, 0) = 3.;
         }
     }
   else if (_DF->getScenario() == "RestingLake")
     {
-      _Sol0.leftCols(2).setZero();
+      _Sol0.rightCols(2).setZero();
       double H(3.);
+
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _Sol0(i,0) = std::max(H - _topography(i,1), 0.);
+          _Sol0(i, 0) = std::max(H - _topography(i, 1), 0.);
         }
     }
   else if (_DF->getScenario() == "DamBreak")
     {
+      _Sol0.rightCols(2).setZero();
+      double Hg(2.), Hd(1.);
+
       for (int i(0); i < _nCells; i++)
         {
-          if (_mesh->getTrianglesCenter()(i,1) < 0.5)
+          if (_cellCenters(i, 0) < 0.)
             {
-              _Sol0(i,0) = 2;
+              _Sol0(i, 0) = std::max(Hg - _topography(i, 1), 0.);
             }
           else
             {
-              _Sol0(i,0) = 1;
+              _Sol0(i, 0) = std::max(Hd - _topography(i, 1), 0.);
             }
         }
     }
-  else if (_DF->getScenario() == "SineWave")
+  else if (_DF->getScenario() == "SinePerturbation")
     {
-      // TODO
+      _Sol0.rightCols(2).setZero();
+
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          // TODO
+        }
     }
   else
     {
@@ -116,6 +126,7 @@ void Function::Initialize()
       std::cout << termcolor::reset << "====================================================================================================" << std::endl;
       exit(-1);
     }
+
   std::cout << termcolor::green << "SUCCESS::SCENARIO : Initial Conditions was successfully built." << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
@@ -147,7 +158,6 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 3>& S
     {
       // TODO
     }
-
   // Pour un fichier de topographie, la dérivée est approchée par une formule de
   // différence finie ?
   else if (_DF->getTopographyType() == "File")
@@ -164,18 +174,14 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 3>& S
 
 Eigen::Vector3d Function::dirichletFunction(double x, double y, double t)
 {
-  Eigen::Vector3d g(0.,0.,0.);
-
+  Eigen::Vector3d g(0., 0., 0.);
   // TODO
-
   return g;
 }
 
 Eigen::Vector3d Function::neumannFunction(double x, double y, double t)
 {
-  Eigen::Vector3d h(0.,0.,0.);
-
+  Eigen::Vector3d h(0., 0., 0.);
   // TODO
-  
   return h;
 }

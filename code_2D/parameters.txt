@@ -18,18 +18,18 @@ ExplicitEuler
 #        Rusanov
 #        HLL
 NumericalFlux
-LaxFriedrichs
+Rusanov
 
 # Fichier du maillage
 MeshFile
-Meshes/square.mesh
+Meshes/square_1.mesh
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-10.
+1.0
 TimeStep
 0.001
 CFL
@@ -50,7 +50,7 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-20
+10
 
 
 ###################################
@@ -69,7 +69,7 @@ SaveFrequency
 #       HydraulicJump           -> Ressaut hydraulique
 #       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
 Scenario
-DamBreak
+SinePerturbation
 
 ########################################
 ###             Topography           ###
@@ -107,7 +107,7 @@ BoundaryConditions
 1 Neumann
 2 Neumann
 3 Neumann
-4 Dirichlet
+4 Neumann
 
 # PAS ENCORE IMPLÉMENTÉ
 

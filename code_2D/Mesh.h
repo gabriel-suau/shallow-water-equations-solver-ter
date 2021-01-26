@@ -143,6 +143,7 @@ private:
   std::vector<Triangle> _triangles;
   Eigen::Matrix<double, Eigen::Dynamic, 2> _trianglesCenter;
   Eigen::VectorXd _trianglesArea;
+  Eigen::VectorXd _trianglesPerimeter;
   // Arêtes
   int _numberOfEdges;
   std::vector<Edge> _edges;
@@ -174,6 +175,7 @@ public:
   const std::vector<Triangle>& getTriangles() const {return _triangles;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getTrianglesCenter() const {return _trianglesCenter;};
   const Eigen::VectorXd& getTrianglesArea() const {return _trianglesArea;};
+  const Eigen::VectorXd& getTrianglesPerimeter() const {return _trianglesPerimeter;};
   int getNumberOfEdges() const {return _numberOfEdges;};
   const std::vector<Edge>& getEdges() const {return _edges;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getEdgesCenter() const {return _edgesCenter;};
@@ -182,7 +184,7 @@ public:
 
   // Useful methods
   void addEdge(const Edge& edge, int nt, std::vector<int>& headMinv, std::vector<int>& nextEdge, int& nbEdge);
-  void buildTrianglesCenterAndArea();
+  void buildTrianglesCenterAndAreaAndPerimeter();
   void buildEdgesNormalAndLengthAndCenter();
 
   // Printer

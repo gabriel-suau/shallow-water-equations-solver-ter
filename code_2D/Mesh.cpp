@@ -133,11 +133,12 @@ void Mesh::addEdge(const Edge& edge, int nt, std::vector<int>& headMinv, std::ve
     }
 }
 
-// Calcule les centres et les aires des triangles
-void Mesh::buildTrianglesCenterAndArea()
+// Calcule les centres, les aires et les périmètres des triangles
+void Mesh::buildTrianglesCenterAndAreaAndPerimeter()
 {
   _trianglesCenter.resize(_numberOfTriangles,2);
   _trianglesArea.resize(_numberOfTriangles);
+  _trianglesPerimeter.resize(_numberOfTriangles);
   // Boucle sur les triangles
   for (int i(0) ; i < _numberOfTriangles ; ++i)
     {
@@ -157,12 +158,14 @@ void Mesh::buildTrianglesCenterAndArea()
       _trianglesCenter(i,0) = (x1 + x2 + x3)/3.;
       _trianglesCenter(i,1) = (y1 + y2 + y3)/3.;
 
-      // Calcul de l'aire
+      // Calcul de l'aire et du périmètre
       double l12(sqrt(pow(x1-x2,2) + pow(y1-y2,2)));
       double l13(sqrt(pow(x1-x3,2) + pow(y1-y3,2)));
       double l23(sqrt(pow(x2-x3,2) + pow(y2-y3,2)));
       double p(0.5 * (l12 + l13 + l23));
-      _trianglesArea(i) = sqrt(p*(p-l12)*(p-l13)*(p-l23));
+      // _trianglesArea(i) = sqrt(p*(p-l12)*(p-l13)*(p-l23));
+      _trianglesArea(i) = 0.5 * abs((x2-x1)*(y3-y1) - (y2-y1)*(x3-x1));
+      _trianglesPerimeter(i) = 2.*p;
     }
 }
 
@@ -209,7 +212,6 @@ void Mesh::buildEdgesNormalAndLengthAndCenter()
 void Mesh::Initialize()
 {
   std::cout << "====================================================================================================" << std::endl;
-  std::cout << "Generating a 2D unstructured mesh from file" << _meshFile << "..." << std::endl;
 
   std::ifstream meshStream(_meshFile, std::ios::in);
 
@@ -222,7 +224,7 @@ void Mesh::Initialize()
     }
   else
     {
-      std::cout << "Building the mesh from file : " << _meshFile << std::endl;
+      std::cout << "Generating a 2D unstructured mesh from file : " << _meshFile << std::endl;
     }
 
   std::string line;
@@ -320,7 +322,7 @@ void Mesh::Initialize()
         }
     }
 
-  buildTrianglesCenterAndArea();
+  buildTrianglesCenterAndAreaAndPerimeter();
   buildEdgesNormalAndLengthAndCenter();
   
   std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;

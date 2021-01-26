@@ -12,7 +12,7 @@ CXX_FLAGS = -std=c++11 -I Eigen/Eigen
 
 # Flags d'optimisation et de debug
 OPTIM_FLAGS = -O2 -DNDEBUG
-DEBUG_FLAGS = -O0 -g -DDEBUG -pedantic
+DEBUG_FLAGS = -O0 -g -DDEBUG -pedantic -fbounds-check -fdump-core -pg
 
 # Nom de l'exécutable
 PROG = main
@@ -33,7 +33,7 @@ debug: $(PROG)
 $(PROG) : $(SRC)
 	$(CC) $(SRC) $(CXX_FLAGS) -o $(PROG)
 
-# Supprime l'exécutable, les fichiers binaires (.o) et les fichiers
-# temporaires de sauvegarde (~)
+# Supprime l'exécutable, les fichiers binaires (.o), les fichiers
+# temporaires de sauvegarde (~), et le fichier de profiling (.out)
 clean :
-	rm -f *.o *~ $(PROG)
+	rm -f *.o *~ gmon.out $(PROG)

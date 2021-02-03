@@ -162,29 +162,27 @@ void Mesh::buildCellsCenterAndAreaAndPerimeter()
 
       // Calul du périmètre et de l'aire
       
-      // Pour tout polygone convexe
-      #if 0
-      for (int j(0) ; j < nbVertices - 1  ; ++j)
-        {
-          double x1(_vertices[verticesIndex(j)].getCoordinates()[0]);
-          double y1(_vertices[verticesIndex(j)].getCoordinates()[1]);
-          double x2(_vertices[verticesIndex(j+1)].getCoordinates()[0]);
-          double y2(_vertices[verticesIndex(j+1)].getCoordinates()[1]);
-          _cellsPerimeter(i) += sqrt(pow(x2-x1,2) + pow(y2-y1,2));
-          _cellsArea(i) += (x2+x1)*(y2-y1);
-          // Verification de l'aiere
-          //std::cout << i << " " << j << " " << _cellsArea(i) << std::endl;
+      // // Pour tout polygone convexe
+      // for (int j(0) ; j < nbVertices - 1  ; ++j)
+      //   {
+      //     double x1(_vertices[verticesIndex(j)].getCoordinates()[0]);
+      //     double y1(_vertices[verticesIndex(j)].getCoordinates()[1]);
+      //     double x2(_vertices[verticesIndex(j+1)].getCoordinates()[0]);
+      //     double y2(_vertices[verticesIndex(j+1)].getCoordinates()[1]);
+      //     _cellsPerimeter(i) += sqrt(pow(x2-x1,2) + pow(y2-y1,2));
+      //     _cellsArea(i) += (x2+x1)*(y2-y1);
+      //     // Verification de l'aiere
+      //     //std::cout << i << " " << j << " " << _cellsArea(i) << std::endl;
           
           
-        }
-      double x1(_vertices[nbVertices-1].getCoordinates()[0]);
-      double y1(_vertices[nbVertices-1].getCoordinates()[1]);
-      double x2(_vertices[0].getCoordinates()[0]);
-      double y2(_vertices[0].getCoordinates()[1]);
-      _cellsPerimeter(i) += sqrt(pow(x2-x1,2) + pow(y2-y1,2));
-      _cellsArea(i) += (x2+x1)*(y2-y1);
-      _cellsArea(i) = abs(0.5 * _cellsArea(i));
-      #endif
+      //   }
+      // double x1(_vertices[nbVertices-1].getCoordinates()[0]);
+      // double y1(_vertices[nbVertices-1].getCoordinates()[1]);
+      // double x2(_vertices[0].getCoordinates()[0]);
+      // double y2(_vertices[0].getCoordinates()[1]);
+      // _cellsPerimeter(i) += sqrt(pow(x2-x1,2) + pow(y2-y1,2));
+      // _cellsArea(i) += (x2+x1)*(y2-y1);
+      // _cellsArea(i) = abs(0.5 * _cellsArea(i));
       
       // Pour des triangles //
       // Calcul de l'aire

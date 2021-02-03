@@ -138,7 +138,7 @@ void DataFile::readDataFile()
   std::cout << "Creating the results directory..." << std::endl;
   system(("mkdir -p ./" +_resultsDir).c_str());
   system(("rm -f ./" +_resultsDir + "/solution*").c_str());
-  system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/parameters.txt").c_str());
+  system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str());
 
   // Logs
   std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;

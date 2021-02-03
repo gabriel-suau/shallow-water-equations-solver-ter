@@ -9,12 +9,10 @@
 
 # Schéma en temps. Valeurs possibles :
 #        ExplicitEuler
-#        ImplicitEuler !!! NE FONCTIONNE PAS !!!
 TimeScheme
 ExplicitEuler
 
 # Choix du flux numérique. Valeurs possibles :
-#        LaxFriedrichs
 #        Rusanov
 #        HLL
 NumericalFlux
@@ -22,7 +20,7 @@ Rusanov
 
 # Fichier du maillage
 MeshFile
-Meshes/square_1.mesh
+Meshes/rectangle_05_dambreak.mesh
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
@@ -50,7 +48,7 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-10
+40
 
 
 ###################################
@@ -69,7 +67,7 @@ SaveFrequency
 #       HydraulicJump           -> Ressaut hydraulique
 #       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
 Scenario
-SinePerturbation
+DamBreak
 
 ########################################
 ###             Topography           ###

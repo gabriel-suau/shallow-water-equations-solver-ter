@@ -30,9 +30,10 @@ public:
   int getIndex() const {return _index;};
   const Eigen::Vector2d& getCoordinates() const {return _coordinates;};
 
-  // Printer
+  // Printer (for debugging purposes)
   void print() const;
 };
+
 
 //-----------------------------------------------//
 //---------------------Edges---------------------//
@@ -42,8 +43,8 @@ class Edge
 private:
   // Indice de l'arête
   int _index;
-  // Références des triangles adjacents à l'arête
-  int _t1, _t2;
+  // Références des cellules adjacentes à l'arête
+  int _c1, _c2;
   // Longueur de l'arête
   double _edgeLength;
   // Type de condition aux limites : Dirichlet, Neumann ou None (si arête intérieure)
@@ -66,63 +67,67 @@ public:
 
   // Getters
   int getIndex() const {return _index;};
-  int getT1() const {return _t1;};
-  int getT2() const {return _t2;};
+  int getC1() const {return _c1;};
+  int getC2() const {return _c2;};
   double getLength() const {return _edgeLength;};
   const Eigen::Vector2i& getVerticesIndex() const {return _verticesIndex;};
   const Eigen::Vector2d& getNormal() const {return _edgeNormal;};
   const Eigen::Vector2d& getCenter() const {return _edgeCenter;};
   const std::string& getBoundaryCondition() const {return _boundaryCondition;};
 
-  // Add triangle
-  void addTriangle(int t)
+  // Add neighbour triangle
+  void addNeighbourCell(int c)
   {
-    if (_t1 == -1)
+    if (_c1 == -1)
       {
-        _t1 = t;
+        _c1 = c;
       }
     else
       {
-        _t2 = t;
+        _c2 = c;
       }
   }
-  // Printer
+  
+  // Printer (for debugging purposes)
   void print() const;
 };
 
-//---------------------------------------------------//
-//---------------------Triangles---------------------//
-//---------------------------------------------------//
-class Triangle
+
+//------------------------------------------------------------//
+//---------------------Generic Cell class---------------------//
+//------------------------------------------------------------//
+class Cell
 {
 private:
-  // Indice du triangle
-  double _index;
-  // Aire du triangle
+  // Indice de la cellule
+  int _index;
+    // Nombre de sommets
+  int _nbVertices;
+  // Aire de la cellule
   double _area;
   // Indices des sommets
-  Eigen::Vector3i _verticesIndex;
+  Eigen::VectorXi _verticesIndex;
   // Coordonnées du centre de gravité
   Eigen::Vector2d _center;
 
 public:
   // Constructeurs
-  Triangle();
-  Triangle(int vertex1, int vertex2, int vertex3, int index);
+  Cell();
+  Cell(const Eigen::VectorXi& verticesIndex, int index);
 
   // Destructeur
-  ~Triangle() = default;
+  ~Cell() = default;
 
-  //Getters
-  double getIndex() const {return _index;};
+  // Getters
+  int getIndex() const {return _index;};
+  int getNumberOfVertices() const {return _nbVertices;};
   double getArea() const {return _area;};
-  const Eigen::Vector3i& getVerticesReference() const {return _verticesIndex;};
+  const Eigen::VectorXi& getVerticesIndex() const {return _verticesIndex;};
   const Eigen::Vector2d& getCenter() const {return _center;};
 
-  // Printer
+  // Printer (for debugging purposes=)
   void print() const;
 };
-
 
 //----------------------------------------------//
 //---------------------Mesh---------------------//
@@ -138,12 +143,16 @@ private:
   // Sommets
   int _numberOfVertices;
   std::vector<Vertex> _vertices;
-  // Triangles
-  int _numberOfTriangles;
-  std::vector<Triangle> _triangles;
-  Eigen::Matrix<double, Eigen::Dynamic, 2> _trianglesCenter;
-  Eigen::VectorXd _trianglesArea;
-  Eigen::VectorXd _trianglesPerimeter;
+
+  // Cells
+  int _numberOfCells;
+  int _numberOfVerticesPerCell;
+  std::string _cellType;
+  std::vector<Cell> _cells;
+  Eigen::Matrix<double, Eigen::Dynamic, 2> _cellsCenter;
+  Eigen::VectorXd _cellsArea;
+  Eigen::VectorXd _cellsPerimeter;
+
   // Arêtes
   int _numberOfEdges;
   std::vector<Edge> _edges;
@@ -168,14 +177,24 @@ public:
   void Initialize();
 
   // Getters
+  
+  // Mesh File
   const std::string& getMeshFile() const {return _meshFile;};
+
+  // Vertices
   int getNumberOfVertices() const {return _numberOfVertices;};
   const std::vector<Vertex>& getVertices() const {return _vertices;};
-  int getNumberOfTriangles() const {return _numberOfTriangles;};
-  const std::vector<Triangle>& getTriangles() const {return _triangles;};
-  const Eigen::Matrix<double, Eigen::Dynamic, 2>& getTrianglesCenter() const {return _trianglesCenter;};
-  const Eigen::VectorXd& getTrianglesArea() const {return _trianglesArea;};
-  const Eigen::VectorXd& getTrianglesPerimeter() const {return _trianglesPerimeter;};
+
+  // Cells
+  int getNumberOfCells() const {return _numberOfCells;};
+  int getNumberOfVerticesPerCell() const {return _numberOfVerticesPerCell;};
+  const std::string& getCellType() const {return _cellType;};
+  const std::vector<Cell>& getCells() const {return _cells;};
+  const Eigen::Matrix<double, Eigen::Dynamic, 2>& getCellsCenter() const {return _cellsCenter;};
+  const Eigen::VectorXd& getCellsArea() const {return _cellsArea;};
+  const Eigen::VectorXd& getCellsPerimeter() const {return _cellsPerimeter;};
+
+  // Edges
   int getNumberOfEdges() const {return _numberOfEdges;};
   const std::vector<Edge>& getEdges() const {return _edges;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getEdgesCenter() const {return _edgesCenter;};
@@ -183,12 +202,15 @@ public:
   const Eigen::VectorXd& getEdgesLength() const {return _edgesLength;};
 
   // Useful methods
-  void addEdge(const Edge& edge, int nt, std::vector<int>& headMinv, std::vector<int>& nextEdge, int& nbEdge);
-  void buildTrianglesCenterAndAreaAndPerimeter();
+  void buildCellsCenterAndAreaAndPerimeter();
   void buildEdgesNormalAndLengthAndCenter();
-
-  // Printer
+  
+  // Printer (for information purposes)
   void printParameters() const;
+
+protected:
+  // Add an Edge (must not be public for obvious reasons)
+  void addEdge(const Edge& edge, int nt, std::vector<int>& headMinv, std::vector<int>& nextEdge, int& nbEdge);
 };
 
 #endif // MESH_H

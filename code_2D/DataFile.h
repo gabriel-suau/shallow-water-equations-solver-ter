@@ -10,10 +10,10 @@
 class DataFile
 {
 private:
-  // Nom du fichier de paramètres
+  // Name of the data file
   std::string _fileName;
 
-  // Paramètres généraux
+  // General parameters
   std::string _scenario;
   std::string _resultsDir;
 
@@ -33,7 +33,7 @@ private:
   // Gravity Acceleration
   double _g;
 
-  // Fréquence de sauvegarde de la solution
+  // Saving frequency (number of iterations) of the solution
   int _saveFrequency;
 
   // Topography
@@ -41,24 +41,23 @@ private:
   std::string _topographyType;
   std::string _topographyFile;
 
-  // Conditions aux limites
+  // Boundary conditions
   int _nBoundaries;
   Eigen::VectorXi _boundaryConditionReference;
   std::vector<std::string> _boundaryConditionType;
   
-
 public:
-  // Constructeurs
+  // Constructors
   DataFile();
   DataFile(const std::string& fileName);
 
-  // Destructeur
+  // Destructor
   ~DataFile() = default;
 
-  // Initialise l'objet
+  // Initializer
   void Initialize(const std::string& fileName);
 
-  // Lit le fichier
+  // Read the data file
   void readDataFile();
 
   // Nettoyer une ligne du fichier
@@ -83,7 +82,7 @@ public:
   const Eigen::VectorXi& getBoundaryConditionReference() const {return _boundaryConditionReference;};
   const std::vector<std::string>& getBoundaryConditionType() const {return _boundaryConditionType;};
 
-  // Affichage des paramètres
+  // Printer (for information purposes)
   void printData() const;
 };
 

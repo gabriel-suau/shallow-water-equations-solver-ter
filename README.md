@@ -38,5 +38,7 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 
 ## Additional optional features
 - [ ] Implement more robust Finite Volumes schemes (well-balanced schemes) ?
-- [ ] Parallelize the code ?
+- [ ] Implement second-order schemes ?
+- [ ] Implement more mesh types (make a generic cell class instead of the triangle class)
+- [ ] Parallelize the 2D code ?
 - [ ] Add a friction source term ?

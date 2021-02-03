@@ -1,7 +1,7 @@
 #include "TimeScheme.h"
 #include "DataFile.h"
 #include "Mesh.h"
-#include "Function.h"
+#include "Physics.h"
 #include "FiniteVolume.h"
 
 #include "Eigen/Eigen/Dense"
@@ -12,22 +12,26 @@
 #include <string>
 #include <cmath>
 
+
+//--------------------------------------------------//
+//--------------------Base Class--------------------//
+//--------------------------------------------------//
 TimeScheme::TimeScheme()
 {
 }
 
-TimeScheme::TimeScheme(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol):
-  _DF(DF), _mesh(mesh), _function(function), _finVol(finVol), _Sol(_function->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime)
+TimeScheme::TimeScheme(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol):
+  _DF(DF), _mesh(mesh), _physics(physics), _finVol(finVol), _Sol(_physics->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime)
 {
 }
 
-void TimeScheme::Initialize(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol)
+void TimeScheme::Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol)
 {
   _DF = DF;
   _mesh = mesh;
-  _function = function;
+  _physics = physics;
   _finVol = finVol;
-  _Sol = _function->getInitialCondition();
+  _Sol = _physics->getInitialCondition();
   _timeStep = DF->getTimeStep();
   _initialTime = DF->getInitialTime();
   _finalTime = DF->getFinalTime();
@@ -38,12 +42,12 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
 {
   std::ofstream outputFile(fileName, std::ios::out);
   outputFile.precision(7);
-  Eigen::Matrix<double, Eigen::Dynamic, 2> cellCenters (_mesh->getTrianglesCenter());
+  Eigen::Matrix<double, Eigen::Dynamic, 2> cellCenters (_mesh->getCellsCenter());
 
   // Vérifications
-  if (_Sol.rows() != _mesh->getNumberOfTriangles())
+  if (_Sol.rows() != _mesh->getNumberOfCells())
     {
-      std::cout << termcolor::red << "ERROR::TIMESCHEME : The size of the solution is not the same that the number of triangles !" << std::endl;
+      std::cout << termcolor::red << "ERROR::TIMESCHEME : The size of the solution is not the same that the number of cells !" << std::endl;
       std::cout << termcolor::reset << "====================================================================================================" << std::endl;
       exit(-1);
     }
@@ -64,64 +68,44 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
   outputFile << std::endl;
 
   // Sauvegarde des cellules
-  int nbTriangles(_mesh->getNumberOfTriangles());
-  outputFile << "CELLS " << nbTriangles << " " << nbTriangles * 4 << std::endl;
-  for (int i(0) ; i < nbTriangles ; ++i)
+  int nbCells(_mesh->getNumberOfCells());
+  int nbVerticesPCell(_mesh->getNumberOfVerticesPerCell());
+  outputFile << "CELLS " << nbCells << " " << nbCells * (nbVerticesPCell + 1) << std::endl;
+  for (int i(0) ; i < nbCells ; ++i)
     {
-      outputFile << 3 << " " << _mesh->getTriangles()[i].getVerticesReference()[0]
-                 << " " << _mesh->getTriangles()[i].getVerticesReference()[1]
-                 << " " << _mesh->getTriangles()[i].getVerticesReference()[2] << std::endl;
+      outputFile << nbVerticesPCell;
+      for (int j(0) ; j < nbVerticesPCell ; ++j)
+        {
+          outputFile << " " << _mesh->getCells()[i].getVerticesIndex()[j];
+        }
+      outputFile << std::endl;
     }
   outputFile << std::endl;
 
   // Sauvegarde du type de cellules
-  outputFile << "CELL_TYPES " << nbTriangles << std::endl;
-  for (int i(0) ; i < nbTriangles ; ++i)
+  outputFile << "CELL_TYPES " << nbCells << std::endl;
+  for (int i(0) ; i < nbCells ; ++i)
     {
       outputFile << 5 << std::endl;
     }
   outputFile << std::endl;
 
-  outputFile << "CELL_DATA " << nbTriangles << std::endl;
+  outputFile << "CELL_DATA " << nbCells << std::endl;
 
   // Sauvegarde de la hauteur
   outputFile << "SCALARS h float 1" << std::endl;
   outputFile << "LOOKUP_TABLE default" << std::endl;
-  for (int i(0) ; i < nbTriangles ; ++i)
+  for (int i(0) ; i < nbCells ; ++i)
     {
       outputFile << _Sol(i,0) << std::endl;
     }
   outputFile << std::endl;
 
-  // Sauvegarde de u
-  outputFile << "SCALARS u float 1" << std::endl;
-  outputFile << "LOOKUP_TABLE default" << std::endl;
-  for (int i(0) ; i < nbTriangles ; ++i)
+  // Sauvegarde de la vitesse
+  outputFile << "VECTORS vel float" << std::endl;
+  for (int i(0) ; i < _mesh->getNumberOfCells() ; ++i)
     {
-      if (_Sol(i,0) > 1e-10)
-        {
-          outputFile << _Sol(i,1)/_Sol(i,0) << std::endl;
-        }
-      else
-        {
-          outputFile << 0. << std::endl;
-        }
-    }
-  outputFile << std::endl;
-
-  // Sauvegarde de v
-  outputFile << "SCALARS v float 1" << std::endl;
-  outputFile << "LOOKUP_TABLE default" << std::endl;
-  for (int i(0) ; i < nbTriangles ; ++i)
-    {
-      if (_Sol(i,0) > 1e-10)
-        {
-          outputFile << _Sol(i,2)/_Sol(i,0) << std::endl;
-        }
-      else
-        {
-          outputFile << 0. << std::endl;
-        }
+      outputFile << _Sol(i,1)/_Sol(i,0) << " " << _Sol(i,2)/_Sol(i,0) << " 0" << std::endl;
     }
   outputFile << std::endl;
 }
@@ -144,7 +128,7 @@ void TimeScheme::solve()
   // Boucle en temps
   while (_currentTime < _finalTime)
     {
-      _function->buildSourceTerm(_Sol);
+      _physics->buildSourceTerm(_Sol);
       _finVol->buildFluxVector(_Sol);
       oneStep();
       ++n;
@@ -162,23 +146,27 @@ void TimeScheme::solve()
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
 
+
+//-------------------------------------------------------------//
+//--------------------Explicit Euler scheme--------------------//
+//-------------------------------------------------------------//
 ExplicitEuler::ExplicitEuler():
   TimeScheme()
 {
 }
 
-ExplicitEuler::ExplicitEuler(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol):
-  TimeScheme(DF, mesh, function, finVol)
+ExplicitEuler::ExplicitEuler(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol):
+  TimeScheme(DF, mesh, physics, finVol)
 {
 }
 
-void ExplicitEuler::Initialize(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol)
+void ExplicitEuler::Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol)
 {
   _DF = DF;
   _mesh = mesh;
-  _function = function;
+  _physics = physics;
   _finVol = finVol;
-  _Sol.resize(mesh->getNumberOfTriangles(), 2);
+  _Sol = _physics->getInitialCondition();
   _timeStep = DF->getTimeStep();
   _initialTime = DF->getInitialTime();
   _finalTime = DF->getFinalTime();
@@ -189,6 +177,14 @@ void ExplicitEuler::oneStep()
 {
   // Récupération des trucs importants
   double dt(_timeStep);
-
-  // TODO
+  const Eigen::VectorXd& cellsArea(_mesh->getCellsArea());
+  const Eigen::Matrix<double, Eigen::Dynamic, 3>& fluxVector(_finVol->getFluxVector());
+  // const Eigen::Matrix<double, Eigen::Dynamic, 3>& sourceTerm(_physics->getSourceTerm());
+  
+  // Mise à jour de la solution
+  for (int i(0) ; i < _Sol.rows() ; ++i)
+    {
+      double cellArea(cellsArea(i));
+      _Sol.row(i) += - dt / cellArea * fluxVector.row(i);
+    }
 }

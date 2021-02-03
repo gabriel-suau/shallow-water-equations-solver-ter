@@ -17,15 +17,15 @@ DEBUG_FLAGS = -O0 -g -DDEBUG -pedantic -fbounds-check -fdump-core -pg
 # Nom de l'exécutable
 PROG = main
 # Fichiers sources
-SRC = main.cpp DataFile.cpp Mesh.cpp Function.cpp FiniteVolume.cpp TimeScheme.cpp
+SRC = main.cpp DataFile.cpp Mesh.cpp Physics.cpp FiniteVolume.cpp TimeScheme.cpp
+
+.PHONY: release debug clean
 
 # Mode release par défaut
-.PHONY: release
 release: CXX_FLAGS += $(OPTIM_FLAGS)
 release: $(PROG)
 
 # Mode debug
-.PHONY: debug
 debug: CXX_FLAGS += $(DEBUG_FLAGS)
 debug: $(PROG)
 
@@ -33,7 +33,8 @@ debug: $(PROG)
 $(PROG) : $(SRC)
 	$(CC) $(SRC) $(CXX_FLAGS) -o $(PROG)
 
+
 # Supprime l'exécutable, les fichiers binaires (.o), les fichiers
 # temporaires de sauvegarde (~), et le fichier de profiling (.out)
-clean :
+clean:
 	rm -f *.o *~ gmon.out $(PROG)

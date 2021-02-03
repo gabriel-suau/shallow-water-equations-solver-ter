@@ -1,7 +1,7 @@
 #include "termcolor.h"
 #include "DataFile.h"
 #include "Mesh.h"
-#include "Function.h"
+#include "Physics.h"
 #include "FiniteVolume.h"
 #include "TimeScheme.h"
 
@@ -14,9 +14,14 @@ int main(int argc, char** argv)
   //-------------------------------------------------------//
   if (argc < 2)
     {
-      std::cout << termcolor::red << "Please, enter the name of your data file." << std::endl;
+      std::cout << termcolor::red << "ERROR::MAIN : Please, enter the name of your data file." << std::endl;
       std::cout << termcolor::reset;
       exit(-1);
+    }
+  else if (argc > 2)
+    {
+      std::cout << termcolor::yellow << "WARNING::MAIN : Too many arguments : only 1 was expected but " << argc - 1 << " were given..."<< std::endl;
+      std::cout << termcolor::reset;
     }
 
   //-------------------------------------------------------//
@@ -43,24 +48,20 @@ int main(int argc, char** argv)
   //----------------------------------------------------------------//
   //---------------------CI, CL, Termes sources---------------------//
   //----------------------------------------------------------------//
-  Function* function = new Function(DF, mesh);
-  function->Initialize();
+  Physics* physics = new Physics(DF, mesh);
+  physics->Initialize();
   
   //--------------------------------------------------------//
   //---------------------Flux numérique---------------------//
   //--------------------------------------------------------//
   FiniteVolume* finVol;
-  if (DF->getNumericalFlux() == "LaxFriedrichs")
+  if (DF->getNumericalFlux() == "Rusanov")
     {
-      finVol = new LaxFriedrichs(DF, mesh, function);
-    }
-  else if (DF->getNumericalFlux() == "Rusanov")
-    {
-      finVol = new Rusanov(DF, mesh, function);
+      finVol = new Rusanov(DF, mesh, physics);
     }
   else if (DF->getNumericalFlux() == "HLL")
     {
-      finVol = new HLL(DF, mesh, function);
+      finVol = new HLL(DF, mesh, physics);
     }
   else
     {
@@ -75,11 +76,7 @@ int main(int argc, char** argv)
   TimeScheme* TS;
   if (DF->getTimeScheme() == "ExplicitEuler")
     {
-      TS = new ExplicitEuler(DF, mesh, function, finVol);
-    }
-  else if (DF->getTimeScheme() == "ImplicitEuler")
-    {
-      TS = new ExplicitEuler(DF, mesh, function, finVol);
+      TS = new ExplicitEuler(DF, mesh, physics, finVol);
     }
   else
     {
@@ -99,7 +96,7 @@ int main(int argc, char** argv)
   //-----------------------------------------------------------//
   delete DF;
   delete mesh;
-  delete function;
+  delete physics;
   delete finVol;
   delete TS;
 

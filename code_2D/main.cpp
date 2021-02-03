@@ -44,6 +44,20 @@ int main(int argc, char** argv)
   Mesh* mesh = new Mesh(DF);
   mesh->Initialize();
   mesh->printParameters();
+
+
+
+
+
+  //vérification aire
+  double AireTotale(0);
+  for (int i = 0; i < mesh->getNumberOfCells(); i++)
+  {
+    AireTotale += mesh->getCellsArea()[i];
+    std::cout << "Aire n. " << i << "\n" << mesh->getCellsArea()[i] << "\n";
+  }
+  std::cout << "Aire Totale" << "\n" << AireTotale << "\n";
+  
                
   //----------------------------------------------------------------//
   //---------------------CI, CL, Termes sources---------------------//

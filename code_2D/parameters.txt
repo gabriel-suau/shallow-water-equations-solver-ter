@@ -20,7 +20,7 @@ Rusanov
 
 # Fichier du maillage
 MeshFile
-Meshes/rectangle_05_dambreak.mesh
+Meshes/square.mesh
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)

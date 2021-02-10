@@ -1,3 +1,30 @@
+/*!
+ * @file DataFile.cpp
+ *
+ * Handles the reading of the data file.
+ *
+ * @authors Gabriel Suau, Remi Pegouret, Lucas Trautmann
+ *
+ * @version 0.1.0
+ *
+ * @copyright © 2021 Gabriel Suau
+ * @copyright © 2021 Remi Pegouret
+ * @copyright © 2021 Lucas Trautmann
+ * 
+ * @copyright This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @copyright This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * @copyright You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "DataFile.h"
 #include "termcolor.h"
 
@@ -40,10 +67,6 @@ std::string DataFile::cleanLine(std::string &line)
   return res;
 }
 
-// Lit le fichier de paramètres ligne par ligne et affecte la valeur
-// adéquate à chaque paramètre. Des vérifications sont faites et la valeur
-// de certain paramètres peut changer selon celles d'autres paramètres. Dans ce
-// cas là, un warning est affiché sur le terminal.
 void DataFile::readDataFile()
 {
   // Open the data file

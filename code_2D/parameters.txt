@@ -27,7 +27,7 @@ Meshes/rectangle_05_dambreak.mesh
 InitialTime
 0.
 FinalTime
-1.0
+2.0
 TimeStep
 0.001
 CFL

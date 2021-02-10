@@ -2,7 +2,7 @@
 h = 0.05;
 
 // Rectangle properties
-length = 10.;
+length = 20.;
 height = 1.;
 
 // Points
@@ -40,8 +40,8 @@ Physical Curve(4) = {7,3};
 Physical Surface(1) = {1,2};
 
 // Uncomment for structured mesh
-meshTransFinite = 50;
-Transfinite Line {1,3,5,7} = 5*meshTransFinite;
-Transfinite Line {2,4,6} = meshTransFinite;
-Transfinite Surface {1,2};
-Recombine Surface {1,2};
+// meshTransFinite = 50;
+// Transfinite Line {1,3,5,7} = 5*meshTransFinite;
+// Transfinite Line {2,4,6} = meshTransFinite;
+// Transfinite Surface {1,2};
+// Recombine Surface {1,2};

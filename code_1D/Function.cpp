@@ -26,8 +26,9 @@ void Function::Initialize(DataFile* DF, Mesh* mesh)
   _xmin = mesh->getxMin();
   _xmax = mesh->getxMax();
   _g = DF->getGravityAcceleration();
+  _i = 0;
   _nCells = mesh->getNumberOfCells();
-  _cellCenters = mesh->getCellCenters();  
+  _cellCenters = mesh->getCellCenters();
   this->Initialize();
 }
 
@@ -36,7 +37,7 @@ void Function::Initialize()
   // Logs de début
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Building topography and initial condition..." << std::endl;
-  
+
   // Resize la condition initiale, la topographie et le terme source
   _Sol0.resize(_nCells, 2);
   _topography.resize(_nCells, 2);
@@ -145,7 +146,7 @@ void Function::Initialize()
   else if (_DF->getScenario() == "DamBreak")
     {
       _Sol0.col(1).setZero();
-      double Hg(2.), Hd(1.);
+      double Hg(1.), Hd(2.);
       for (int i(0) ; i < _nCells ; ++i)
         {
           if (_cellCenters(i) < 0.5*(_xmax + _xmin))
@@ -183,6 +184,16 @@ void Function::Initialize()
             }
         }
     }
+    /*else if (_DF->getScenario() == "LaSalie")
+    {
+      _Sol0.col(1).setZero();
+      double dx(_DF->getSpaceStep());
+      for (int i(0) ; i < _nCells ; ++i)
+      {
+        _Sol0(i,0) =
+      }
+
+    }*/
   else
     {
       std::cout << termcolor::red << "ERROR::SCENARIO : Case not implemented" << std::endl;
@@ -191,7 +202,12 @@ void Function::Initialize()
     }
   std::cout << termcolor::green << "SUCCESS::SCENARIO : Initial Conditions was successfully built." << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+
+  _i = 0; // On initialise i au cas ou
 }
+
+
+
 
 void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
@@ -265,28 +281,179 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& S
     }
 }
 
-Eigen::Vector2d Function::dirichletFunction(double x, double t)
-{
-  Eigen::Vector2d g(0.,0.);
-  // Condition d'entrée
-  if (x == _mesh->getxMin())
-    {
-      g << 2., 10.;
-    }
-  // Condition de sortie
-  if (x == _mesh->getxMax())
-    {
-      
-    }
-  return g;
-}
 
-Eigen::Vector2d Function::neumannFunction(double x, double t)
+
+
+Eigen::Vector2d Function::dirichletFunction(double x, double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& donnees, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
   Eigen::Vector2d h(0.,0.);
-  // Condition d'entrée
-  
-  // Condition de sortie
+  double a, b, c, dx, dt, u1, u2, h1, h2, x1, u_xe;
+  int i_max;
+  dx = _DF->getDx();
+  dt = _DF->getTimeStep();
+  x1 = _DF->getXmin() + dx/2; // x1 est le milieu de la première maille
+  i_max = donnees.size() - _i;
 
+  if (_DF->getScenario() == "LaSalie") // Cas d'étude pratique
+  {
+    //std::ifstream HauteurFile("experimental_data/water_height_35.txt", ios::in);
+    double temps1(donnees(_i,0)), temps2(donnees(_i+1,0)), hauteur1(donnees(_i,1)), hauteur2(donnees(_i+1,1));
+    while ((not(temps1 < t <= temps2)) & (_i < i_max)) // On cherche a trouver les temps connus des capteurs tq temps1 < t <= temps2
+    {
+      _i++;
+      temps1 = donnees(_i,0);
+      temps2 = donnees(_i+1,0);
+    }
+    if (_i == i_max)
+    {
+      std::cout << "Aucun pas de temps ne correspond --> pas trop eleve ?" << std::endl;
+      return h;
+    }
+    hauteur1 = donnees(_i,1);
+    hauteur2 = donnees(_i+1,1);
+    h(0) = (t - temps1)*(hauteur2 - hauteur1)/(temps2 - temps1) - hauteur1;
+
+    h1 = Sol(0,0);
+    h2 = Sol(1,0);
+    u1 = Sol(0,1);
+    u2 = Sol(1,1);
+    a = pow(1 + dt/dx * (u2 - u1), 2);
+    b = 2*dt*(u1 - x1/dx * (u2 - u1)) * (1 + dt/dx * (u2 - u1)) - dt*dt*_g*(h2 - h1)/dx;
+    c = pow(dt*u1 - dt/dx * x1 * (u2 - u1), 2) - dt*dt * _g * (h1 - x1/dx * (h2 - h1));
+
+    double racine;
+    racine = FindRacine(a, b, c);
+    if (racine < 0)
+    {
+      std::cout << "Pb dans les conditions aux bords de Neumann" << std::endl;
+      h(1) = 0; // C'est n'importe quoi et on le sait
+    }
+    else
+    {
+      u_xe = u1 + (racine - x1)*(u2 - u1)/dx;
+    }
+
+    double beta_moins_xe_tn, beta_moins_0_tnplus1;
+    double source_terme_xe; // IL FAUT RECUPERER LE TERME SOURCE EN XE PAR INTERPOLATION
+    source_terme_xe = FindSourceX(racine);
+    beta_moins_xe_tn = u_xe - 2*sqrt(_g*h(0));
+    beta_moins_0_tnplus1 = beta_moins_xe_tn - _g*dt*source_terme_xe;
+    h(1) = h(0)*(beta_moins_0_tnplus1 + 2*sqrt(_g*h(0)));
+  }
   return h;
+}
+
+
+
+
+Eigen::Vector2d Function::neumannFunction(double x, double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& donnees, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+{
+  Eigen::Vector2d h(0.,0.);
+  double a, b, c, dx, dt, u1, u2, h1, h2, x1, u_xe;
+  int i_max;
+  dx = _DF->getDx();
+  dt = _DF->getTimeStep();
+  x1 = _DF->getXmin() + dx/2; // x1 est le milieu de la première maille
+  i_max = donnees.size() - _i;
+
+  if (_DF->getScenario() == "LaSalie") // Cas d'étude pratique
+  {
+    //std::ifstream HauteurFile("experimental_data/water_height_35.txt", ios::in);
+    double temps1(donnees(_i,0)), temps2(donnees(_i+1,0)), hauteur1(donnees(_i,1)), hauteur2(donnees(_i+1,1));
+    while ((not(temps1 < t <= temps2)) & (_i < i_max)) // On cherche a trouver les temps connus des capteurs tq temps1 < t <= temps2
+    {
+      _i++;
+      temps1 = donnees(_i,0);
+      temps2 = donnees(_i+1,0);
+    }
+    if (_i == i_max)
+    {
+      std::cout << "Aucun pas de temps ne correspond --> pas trop eleve ?" << std::endl;
+      return h;
+    }
+    hauteur1 = donnees(_i,1);
+    hauteur2 = donnees(_i+1,1);
+    h(0) = (t - temps1)*(hauteur2 - hauteur1)/(temps2 - temps1) - hauteur1;
+
+    h1 = Sol(0,0);
+    h2 = Sol(1,0);
+    u1 = Sol(0,1);
+    u2 = Sol(1,1);
+    a = pow(1 + dt/dx * (u2 - u1), 2);
+    b = 2*dt*(u1 - x1/dx * (u2 - u1)) * (1 + dt/dx * (u2 - u1)) - dt*dt*_g*(h2 - h1)/dx;
+    c = pow(dt*u1 - dt/dx * x1 * (u2 - u1), 2) - dt*dt * _g * (h1 - x1/dx * (h2 - h1));
+
+    double racine;
+    racine = FindRacine(a, b, c);
+    if (racine < 0)
+    {
+      std::cout << "Pb dans les conditions aux bords de Neumann" << std::endl;
+      h(1) = 0; // C'est n'importe quoi et on le sait
+    }
+    else
+    {
+      u_xe = u1 + (racine - x1)*(u2 - u1)/dx;
+    }
+
+    double beta_moins_xe_tn, beta_moins_0_tnplus1;
+    double source_terme_xe; // IL FAUT RECUPERER LE TERME SOURCE EN XE PAR INTERPOLATION
+    source_terme_xe = FindSourceX(racine);
+    beta_moins_xe_tn = u_xe - 2*sqrt(_g*h(0));
+    beta_moins_0_tnplus1 = beta_moins_xe_tn - _g*dt*source_terme_xe;
+    h(1) = h(0)*(beta_moins_0_tnplus1 + 2*sqrt(_g*h(0)));
+  }
+  return h;
+}
+
+
+double Function::FindRacine(double a, double b, double c) // Calcule les racines de ax^2 + bx + c
+{
+  double discriminant;
+  discriminant = b*b - 4*a*c;
+  if (discriminant < 0)
+  {
+    std::cout << "Pas de racine au polynome -> pb au niveau des CdB" << std::endl;
+    return -1;
+  }
+  else if (discriminant == 0)
+  {
+    double r(-b/(2*a));
+
+    if (r > 0) {return r;}
+    else
+    {
+      std::cout << "Probleme au niveau des racines : on trouve x_e negatif" << std::endl;
+      return -1;
+    }
+  }
+  else
+  {
+    double r1, r2;
+    r1 = (-b - sqrt(discriminant))/(2*a);
+    r2 = (-b + sqrt(discriminant))/(2*a);
+    if (r2*r1 < 0) {return r2;}
+    else
+    {
+      std::cout << "Probleme au niveau des racines : on trouve x_e negatif" << std::endl;
+      return -1;
+    }
+  }
+}
+
+double Function::FindSourceX(double x) // Donne le terme source en x par interpolation
+{
+  int i(0);
+  double source1, source2, source;
+  double x1(_source(i,0)); //mesure en x
+  double x2;
+  while ((x1 < x)||(i < _source.col(0).size()))
+  {
+    i++;
+    x1 = _source(i,0);
+  }
+  x2 = _source(i+1,0);
+  source1 = _source(i,1);
+  source2 = _source(i+1,1);
+  source = (x - x1)*(source2 - source1)/(x2 - x1) - source1;
+  return source;
 }

@@ -149,6 +149,10 @@ void Rusanov::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
       // CL à gauche (que Neumann homogène pour le moment)
       if (i == 0)
         {
+          if (_DF->getScenario() == "LaSalie")
+          {
+            
+          }
           hg = Sol(0,0);
           qg = Sol(0,1);
           hd = Sol(0,0);
@@ -282,7 +286,7 @@ void HLL::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
           else if (c2 <= 0.)
             {
               _fluxVector(i,0) = qd;
-              _fluxVector(i,1) = qd*qd/hd + 0.5*g*hd*hd;              
+              _fluxVector(i,1) = qd*qd/hd + 0.5*g*hd*hd;
             }
         }
       else if (hg < 1e-6 && hd != 0.)
@@ -302,7 +306,7 @@ void HLL::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
           else if (c2 <= 0.)
             {
               _fluxVector(i,0) = qd;
-              _fluxVector(i,1) = qd*qd/hd + 0.5*g*hd*hd;              
+              _fluxVector(i,1) = qd*qd/hd + 0.5*g*hd*hd;
             }
         }
       else if (hd < 1e-6 && hg != 0)

@@ -9,35 +9,29 @@
 
 # Schéma en temps. Valeurs possibles :
 #        ExplicitEuler
-#        ImplicitEuler !!! NE FONCTIONNE PAS !!!
 TimeScheme
 ExplicitEuler
 
 # Choix du flux numérique. Valeurs possibles :
-#        LaxFriedrichs
 #        Rusanov
 #        HLL
 NumericalFlux
 Rusanov
 
-# Paramètres du maillage
-xmin
--10.
-xmax
-10.
-dx
-0.01
+# Fichier du maillage
+MeshFile
+Meshes/rectangle_05_dambreak.mesh
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-2.
+2.0
 TimeStep
 0.001
 CFL
-0.9
+1.0
 
 # Accélération de la pesanteur
 GravityAcceleration
@@ -50,11 +44,11 @@ GravityAcceleration
 
 # Répertoire où stocker les résultats
 ResultsDir
-resultsTest
+results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-20
+40
 
 
 ###################################
@@ -73,26 +67,7 @@ SaveFrequency
 #       HydraulicJump           -> Ressaut hydraulique
 #       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
 Scenario
-RestingLake
-
-# LES CL NE SONT PAS ENCORE LUES PAR LA CLASSE DataFile
-
-# Choix d'une CL à gauche. Valeurs possibles
-#       PeriodicWaves
-#       FreeBoundary
-#       Reflection
-#       ConstantHeightConstantSpeed
-LeftBoundaryCondition
-PeriodicWaves
-
-# Choix d'une CL à droite. Valeurs possibles
-#       PeriodicWaves
-#       FreeBoundary
-#       Reflection
-#       ConstantHeightConstantSpeed
-RightBoundaryCondition
-FreeBoundary
-
+DamBreak
 
 ########################################
 ###             Topography           ###
@@ -102,7 +77,7 @@ FreeBoundary
 #         0 -> Fond plat
 #         1 -> Choisit la topo en fonction de la valeur de TopographyType
 IsTopography
-1
+0
 
 # Type de topographie. Valeurs possibles :
 #      FlatBottom      -> Fond plat
@@ -114,13 +89,23 @@ IsTopography
 #      EllipticBump    -> Bosse elliptique
 #      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-File
+FlatBottom
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv
 TopographyFile
 topography_la_salie.csv
 
+
+# Conditions aux limites
+#      Neumann
+#      Dirichlet
+BoundaryConditions
+4
+1 Neumann
+2 Neumann
+3 Neumann
+4 Neumann
 
 # PAS ENCORE IMPLÉMENTÉ
 

@@ -1,7 +1,7 @@
 #include "termcolor.h"
 #include "DataFile.h"
 #include "Mesh.h"
-#include "Function.h"
+#include "Physics.h"
 #include "FiniteVolume.h"
 #include "TimeScheme.h"
 
@@ -46,8 +46,8 @@ int main(int argc, char** argv)
   //----------------------------------------------------------------//
   //---------------------CI, CL, Termes sources---------------------//
   //----------------------------------------------------------------//
-  Function* function = new Function(DF, mesh);
-  function->Initialize();
+  Physics* physics = new Physics(DF, mesh);
+  physics->Initialize();
 
   
   //--------------------------------------------------------//
@@ -56,15 +56,15 @@ int main(int argc, char** argv)
   FiniteVolume* finVol;
   if (DF->getNumericalFlux() == "LaxFriedrichs")
     {
-      finVol = new LaxFriedrichs(DF, mesh, function);
+      finVol = new LaxFriedrichs(DF, mesh, physics);
     }
   else if (DF->getNumericalFlux() == "Rusanov")
     {
-      finVol = new Rusanov(DF, mesh, function);
+      finVol = new Rusanov(DF, mesh, physics);
     }
   else if (DF->getNumericalFlux() == "HLL")
     {
-      finVol = new HLL(DF, mesh, function);
+      finVol = new HLL(DF, mesh, physics);
     }
   else
     {
@@ -80,11 +80,11 @@ int main(int argc, char** argv)
   TimeScheme* TS;
   if (DF->getTimeScheme() == "ExplicitEuler")
     {
-      TS = new ExplicitEuler(DF, mesh, function, finVol);
+      TS = new ExplicitEuler(DF, mesh, physics, finVol);
     }
   else if (DF->getTimeScheme() == "RK2")
     {
-      TS = new RK2(DF, mesh, function, finVol);
+      TS = new RK2(DF, mesh, physics, finVol);
     }
   else
     {
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
   //-----------------------------------------------------------//
   delete DF;
   delete mesh;
-  delete function;
+  delete physics;
   delete finVol;
   delete TS;
 

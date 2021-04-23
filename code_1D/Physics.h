@@ -1,5 +1,5 @@
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef PHYSICS_H
+#define PHYSICS_H
 
 #include "DataFile.h"
 #include "Mesh.h"
@@ -7,7 +7,7 @@
 #include "Eigen/Eigen/Dense"
 #include "Eigen/Eigen/Sparse"
 
-class Function
+class Physics
 {
 private:
   // Pointeur vers le fichier de paramètres pour récupérer les
@@ -37,8 +37,8 @@ private:
   
 public:
   // Constructeur
-  Function();
-  Function(DataFile* DF, Mesh* mesh);
+  Physics();
+  Physics(DataFile* DF, Mesh* mesh);
 
   // Initialisation
   void Initialize();
@@ -79,4 +79,4 @@ protected:
   double FindSourceX(double x);
 };
 
-#endif // FUNCTION_H
+#endif // PHYSICS_H

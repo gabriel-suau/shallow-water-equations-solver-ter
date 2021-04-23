@@ -5,7 +5,7 @@
 #include "Eigen/Eigen/Sparse"
 #include "DataFile.h"
 #include "Mesh.h"
-#include "Function.h"
+#include "Physics.h"
 #include "FiniteVolume.h"
 
 class TimeScheme
@@ -14,7 +14,7 @@ protected:
   // Pointeur vers les trucs importants
   DataFile* _DF;
   Mesh* _mesh;
-  Function* _function;
+  Physics* _physics;
   FiniteVolume* _finVol;
 
   // Vecteur solution
@@ -29,10 +29,10 @@ protected:
 public:
   // Constructeurs
   TimeScheme();
-  TimeScheme(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+  TimeScheme(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol);
 
   // Initialiseur
-  void Initialize(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+  void Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol);
   // Destructeur
   virtual ~TimeScheme() = default;
 
@@ -54,10 +54,10 @@ class ExplicitEuler: public TimeScheme
 public:
   // Constructeurs
   ExplicitEuler();
-  ExplicitEuler(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+  ExplicitEuler(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol);
 
   // Initialiseur
-  void Initialize(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+  void Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol);
 
   // One time step
   void oneStep();
@@ -68,10 +68,10 @@ class RK2: public TimeScheme
 public:
   // Constructeurs
   RK2();
-  RK2(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+  RK2(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol);
 
   // Initialiseur
-  void Initialize(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+  void Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol);
 
   // One time step
   void oneStep();

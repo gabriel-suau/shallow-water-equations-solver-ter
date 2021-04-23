@@ -1,4 +1,4 @@
-#include "Function.h"
+#include "Physics.h"
 #include "DataFile.h"
 #include "termcolor.h"
 #include "Eigen/Eigen/Dense"
@@ -14,13 +14,13 @@
 //------------------------------------------//
 //---------------Constructors---------------//
 //------------------------------------------//
-Function::Function()
+Physics::Physics()
 {
 }
 
 
 
-Function::Function(DataFile* DF, Mesh* mesh):
+Physics::Physics(DataFile* DF, Mesh* mesh):
   _DF(DF), _mesh(mesh), _xmin(mesh->getxMin()), _xmax(mesh->getxMax()), _g(_DF->getGravityAcceleration()), _nCells(mesh->getNumberOfCells()), _cellCenters(mesh->getCellCenters()), _i(0)
 {
 }
@@ -30,7 +30,7 @@ Function::Function(DataFile* DF, Mesh* mesh):
 //--------------------------------------------//
 //---------------Initialization---------------//
 //--------------------------------------------//
-void Function::Initialize(DataFile* DF, Mesh* mesh)
+void Physics::Initialize(DataFile* DF, Mesh* mesh)
 {
   _DF = DF;
   _mesh = mesh;
@@ -45,7 +45,7 @@ void Function::Initialize(DataFile* DF, Mesh* mesh)
 
 
 
-void Function::Initialize()
+void Physics::Initialize()
 {
   // Logs
   std::cout << "====================================================================================================" << std::endl;
@@ -68,7 +68,7 @@ void Function::Initialize()
 //----------------------------------------------//
 //---------------Build Topography---------------//
 //----------------------------------------------//
-void Function::buildTopography()
+void Physics::buildTopography()
 {
   _topography.resize(_nCells, 2);
   _topography.col(0) = _cellCenters;
@@ -137,7 +137,7 @@ void Function::buildTopography()
 //-----------------------------------------------------//
 //---------------Build Initial Condition---------------//
 //-----------------------------------------------------//
-void Function::buildInitialCondition()
+void Physics::buildInitialCondition()
 {
   _Sol0.resize(_nCells, 2);
   if (_DF->getInitialCondition() == "UniformHeightAndDischarge")
@@ -213,7 +213,7 @@ void Function::buildInitialCondition()
 //--------------------------------------------------------------//
 //---------------Build Experimental Boundary Data---------------//
 //--------------------------------------------------------------//
-void Function::buildExpBoundaryData()
+void Physics::buildExpBoundaryData()
 {  
   const std::string expDataFile(_DF->getLeftBCDataFile());
   std::ifstream expDataStream(expDataFile);
@@ -253,7 +253,7 @@ void Function::buildExpBoundaryData()
 //-----------------------------------------------//
 //---------------Build Source Term---------------//
 //-----------------------------------------------//
-void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+void Physics::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
   // Construit le terme source en fonction de la topographie.
   _source.setZero();
@@ -305,7 +305,7 @@ void Function::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& S
 //-------------------------------------------//
 //---------------Physical flux---------------//
 //-------------------------------------------//
-Eigen::Vector2d Function::physicalFlux(const Eigen::Vector2d& Sol) const
+Eigen::Vector2d Physics::physicalFlux(const Eigen::Vector2d& Sol) const
 {
   Eigen::Vector2d flux;
   double h(Sol(0)), qx(Sol(1));
@@ -318,7 +318,7 @@ Eigen::Vector2d Function::physicalFlux(const Eigen::Vector2d& Sol) const
 //----------------------------------------//
 //---------------Wave speed---------------//
 //----------------------------------------//
-void Function::computeWaveSpeed(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD, double* lambda1, double* lambda2) const
+void Physics::computeWaveSpeed(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD, double* lambda1, double* lambda2) const
 {
   double hG(SolG(0)), hD(SolD(0));
   double uG(SolG(1)/hG), uD(SolD(1)/hD);
@@ -331,7 +331,7 @@ void Function::computeWaveSpeed(const Eigen::Vector2d& SolG, const Eigen::Vector
 //---------------Exact Solution---------------//
 //--------------------------------------------//
 // Compute the exact solutions corresponding to the test cases
-Eigen::Vector2d Function::exactSolution(double x, double t) const
+Eigen::Vector2d Physics::exactSolution(double x, double t) const
 {
   Eigen::Vector2d exactSol;
   if (_DF->getInitialCondition() == "UniformHeightAndDischarge")
@@ -355,7 +355,7 @@ Eigen::Vector2d Function::exactSolution(double x, double t) const
 //------------------------------------------------------//
 //---------------Left Boundary Conditions---------------//
 //------------------------------------------------------//
-Eigen::Vector2d Function::leftBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+Eigen::Vector2d Physics::leftBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
   Eigen::Vector2d SolG(0.,0.);
 
@@ -468,7 +468,7 @@ Eigen::Vector2d Function::leftBoundaryFunction(double t, const Eigen::Matrix<dou
 //-------------------------------------------------------//
 //---------------Right Boundary Conditions---------------//
 //-------------------------------------------------------//
-Eigen::Vector2d Function::rightBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+Eigen::Vector2d Physics::rightBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
   Eigen::Vector2d SolD(0.,0.);
 
@@ -567,7 +567,7 @@ Eigen::Vector2d Function::rightBoundaryFunction(double t, const Eigen::Matrix<do
 
 
 // Other
-double Function::FindRacine(double a, double b, double c)
+double Physics::FindRacine(double a, double b, double c)
 {
   double delta;
   delta = b*b - 4*a*c;
@@ -593,7 +593,7 @@ double Function::FindRacine(double a, double b, double c)
 
 
 // Donne le terme source en x par interpolation
-double Function::FindSourceX(double x)
+double Physics::FindSourceX(double x)
 {
   int i(0);
   double dx(_DF->getDx());

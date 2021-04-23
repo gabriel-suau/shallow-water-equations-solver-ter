@@ -1,7 +1,7 @@
 #include "FiniteVolume.h"
 #include "DataFile.h"
 #include "Mesh.h"
-#include "Function.h"
+#include "Physics.h"
 
 #include "Eigen/Eigen/Dense"
 #include "Eigen/Eigen/Sparse"
@@ -20,18 +20,18 @@ FiniteVolume::FiniteVolume()
 
 
 
-FiniteVolume::FiniteVolume(DataFile* DF, Mesh* mesh, Function* function):
-  _DF(DF), _mesh(mesh), _function(function), _fluxVector(_mesh->getNumberOfCells(), 2)
+FiniteVolume::FiniteVolume(DataFile* DF, Mesh* mesh, Physics* physics):
+  _DF(DF), _mesh(mesh), _physics(physics), _fluxVector(_mesh->getNumberOfCells(), 2)
 {
 }
 
 
 
-void FiniteVolume::Initialize(DataFile* DF, Mesh* mesh, Function* function)
+void FiniteVolume::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 {
   _DF = DF;
   _mesh = mesh;
-  _function = function;
+  _physics = physics;
   _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
 
@@ -50,7 +50,7 @@ void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, E
       // Left Boundary
       if (i == 0)
         {
-          SolG = _function->leftBoundaryFunction(t + _DF->getTimeStep(), Sol);
+          SolG = _physics->leftBoundaryFunction(t + _DF->getTimeStep(), Sol);
           SolD = Sol.row(0);
           _fluxVector.row(0) += numFlux(SolG, SolD);
         }
@@ -58,7 +58,7 @@ void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, E
       else if (i == nCells)
         {
           SolG = Sol.row(nCells - 1);
-          SolD = _function->rightBoundaryFunction(t + _DF->getTimeStep(), Sol);
+          SolD = _physics->rightBoundaryFunction(t + _DF->getTimeStep(), Sol);
           _fluxVector.row(nCells - 1) -= numFlux(SolG, SolD);
         }
       // Interior
@@ -83,7 +83,7 @@ LaxFriedrichs::LaxFriedrichs():
 
 
 
-LaxFriedrichs::LaxFriedrichs(DataFile* DF, Mesh* mesh, Function* function):
+LaxFriedrichs::LaxFriedrichs(DataFile* DF, Mesh* mesh, Physics* function):
   FiniteVolume(DF, mesh, function)
 {
   _fluxName = "LF";
@@ -91,11 +91,11 @@ LaxFriedrichs::LaxFriedrichs(DataFile* DF, Mesh* mesh, Function* function):
 
 
 
-void LaxFriedrichs::Initialize(DataFile* DF, Mesh* mesh, Function* function)
+void LaxFriedrichs::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 {
   _DF = DF;
   _mesh = mesh;
-  _function = function;
+  _physics = physics;
   _fluxName = "LF";
   _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
@@ -111,7 +111,7 @@ Eigen::Vector2d LaxFriedrichs::numFlux(const Eigen::Vector2d& SolG, const Eigen:
   double b(dx/dt);
 
   // Calcul du flux
-  flux = 0.5 * ((_function->physicalFlux(SolD) + _function->physicalFlux(SolG)) - b * (SolD - SolG));
+  flux = 0.5 * ((_physics->physicalFlux(SolD) + _physics->physicalFlux(SolG)) - b * (SolD - SolG));
   
   return flux;
 }
@@ -127,19 +127,19 @@ Rusanov::Rusanov():
 
 
 
-Rusanov::Rusanov(DataFile* DF, Mesh* mesh, Function* function):
-  FiniteVolume(DF, mesh, function)
+Rusanov::Rusanov(DataFile* DF, Mesh* mesh, Physics* physics):
+  FiniteVolume(DF, mesh, physics)
 {
   _fluxName = "Rusanov";
 }
 
 
 
-void Rusanov::Initialize(DataFile* DF, Mesh* mesh, Function* function)
+void Rusanov::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 {
   _DF = DF;
   _mesh = mesh;
-  _function = function;
+  _physics = physics;
   _fluxName = "Rusanov";
   _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
@@ -152,11 +152,11 @@ Eigen::Vector2d Rusanov::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vecto
   
   // Calcul de b
   double lambda1, lambda2;
-  _function->computeWaveSpeed(SolG, SolD, &lambda1, &lambda2);
+  _physics->computeWaveSpeed(SolG, SolD, &lambda1, &lambda2);
   double b(std::max(abs(lambda1),abs(lambda2)));
 
   // Calcul du flux
-  flux = 0.5 * ((_function->physicalFlux(SolD) + _function->physicalFlux(SolG)) - b * (SolD - SolG));
+  flux = 0.5 * ((_physics->physicalFlux(SolD) + _physics->physicalFlux(SolG)) - b * (SolD - SolG));
   
   return flux;
 }
@@ -172,19 +172,19 @@ HLL::HLL():
 
 
 
-HLL::HLL(DataFile* DF, Mesh* mesh, Function* function):
-  FiniteVolume(DF, mesh, function)
+HLL::HLL(DataFile* DF, Mesh* mesh, Physics* physics):
+  FiniteVolume(DF, mesh, physics)
 {
   _fluxName = "HLL";
 }
 
 
 
-void HLL::Initialize(DataFile* DF, Mesh* mesh, Function* function)
+void HLL::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 {
   _DF = DF;
   _mesh = mesh;
-  _function = function;
+  _physics = physics;
   _fluxName = "HLL";
   _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
@@ -197,20 +197,20 @@ Eigen::Vector2d HLL::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d&
   
   // Calcul de b
   double lambda1, lambda2;
-  _function->computeWaveSpeed(SolG, SolD, &lambda1, &lambda2);
+  _physics->computeWaveSpeed(SolG, SolD, &lambda1, &lambda2);
 
   // Calcul du flux
   if (0 <= lambda1)
     {
-      flux = _function->physicalFlux(SolG);
+      flux = _physics->physicalFlux(SolG);
     }
   else if (lambda1 < 0 && 0 < lambda2)
     {
-      flux = (lambda2 * _function->physicalFlux(SolG) - lambda1 * _function->physicalFlux(SolD) + lambda2 * lambda1 * (SolD - SolG))/(lambda2 - lambda1);
+      flux = (lambda2 * _physics->physicalFlux(SolG) - lambda1 * _physics->physicalFlux(SolD) + lambda2 * lambda1 * (SolD - SolG))/(lambda2 - lambda1);
     }
   else if (lambda2 <= 0)
     {
-      flux = _function->physicalFlux(SolD);
+      flux = _physics->physicalFlux(SolD);
     }
   
   return flux;

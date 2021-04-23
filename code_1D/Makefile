@@ -17,7 +17,7 @@ DEBUG_FLAGS = -O0 -g -DDEBUG -pedantic
 # Nom de l'exécutable
 PROG = main
 # Fichiers sources
-SRC = main.cpp DataFile.cpp Mesh.cpp Function.cpp FiniteVolume.cpp TimeScheme.cpp
+SRC = main.cpp DataFile.cpp Mesh.cpp Physics.cpp FiniteVolume.cpp TimeScheme.cpp
 
 # Mode release par défaut
 .PHONY: release

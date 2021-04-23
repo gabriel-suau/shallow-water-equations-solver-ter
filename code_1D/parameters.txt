@@ -9,7 +9,7 @@
 
 # Schéma en temps. Valeurs possibles :
 #        ExplicitEuler
-#        ImplicitEuler !!! NE FONCTIONNE PAS !!!
+#        RK2
 TimeScheme
 ExplicitEuler
 
@@ -18,24 +18,24 @@ ExplicitEuler
 #        Rusanov
 #        HLL
 NumericalFlux
-Rusanov
+HLL
 
 # Paramètres du maillage
 xmin
--10.
+0.
 xmax
-10.
+25.
 dx
-0.01
+0.02
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-2.
+300
 TimeStep
-0.001
+0.002
 CFL
 0.9
 
@@ -50,48 +50,92 @@ GravityAcceleration
 
 # Répertoire où stocker les résultats
 ResultsDir
-resultsTest
+results
+
+# Sauvegarder uniquement le résultat à t=FinalTime
+SaveFinalResultOnly
+0
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
+# Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
-20
+500
 
 
 ###################################
 ###             CI/CL           ###
 ###################################
 
-# Choix d'un scenario. Le choix d'un scenario impose la CI.
-# Attention : le scénario LaSalie impose aussi la topographie et les CL. Valeurs possibles
-#       None                    -> Pas de scenario, rien ne se passe
-#       SinePerturbation        -> CI=1/2 période de sinus au milieu du domaine.
-#       SineWave                -> CI=sinus
-#       PeriodicWaves           -> CL entrée h = 2 + sin(t), v = 0
-#       RestingLake             -> 
-#       ConstantWaterHeight     -> 
-#       DamBreak                -> Rupture de barrage
-#       HydraulicJump           -> Ressaut hydraulique
-#       LaSalie                 -> Scenario "réel" correspondant à l'expérience sur la plage de La Salie
-Scenario
-RestingLake
+# Choix d'une CI.
+# Valeurs possibles
+#       SinePerturbation          -> CI=1/2 période de sinus au milieu du domaine.
+#       UniformHeightAndDischarge -> 
+#       DamBreakWet               -> Rupture de barrage classique
+#       DamBreakDry               -> Rupture de barrage sur zone sèche
+InitialCondition
+UniformHeightAndDischarge
 
-# LES CL NE SONT PAS ENCORE LUES PAR LA CLASSE DataFile
+
+# Choix de la cote de la surface libre (H = h + z) et du débit initial dans le domaine
+# N'est utile que si InitialCondition == UniformHeightAndDischarge
+InitialHeight
+0.33
+InitialDischarge
+0.
+
 
 # Choix d'une CL à gauche. Valeurs possibles
+#       Neumann
+#       Wall
+#       Periodic
+#       ImposedConstantHeight
+#       ImposedConstantDischarge
+#       DataFile
 #       PeriodicWaves
-#       FreeBoundary
-#       Reflection
-#       ConstantHeightConstantSpeed
 LeftBoundaryCondition
-PeriodicWaves
+ImposedConstantDischarge
+
 
 # Choix d'une CL à droite. Valeurs possibles
+#       Neumann
+#       Wall
+#       Periodic
+#       ImposedConstantHeight
+#       ImposedConstantDischarge
+#       DataFile
 #       PeriodicWaves
-#       FreeBoundary
-#       Reflection
-#       ConstantHeightConstantSpeed
 RightBoundaryCondition
-FreeBoundary
+ImposedConstantHeight
+
+
+# Valeurs imposées
+# Ces valeurs ne sont utiles que si :
+#     - LeftBoundaryCondition == ImposedConstantHeight || ImposedConstantDischarge
+#     - RightBoundaryCondition == ImposedConstantHeight || ImposedConstantDischarge
+# De plus, seulement 2 de ces 4 valeurs seront imposées (régime fluvial ou torrentiel)
+
+
+LeftBoundaryImposedHeight
+0.33
+LeftBoundaryImposedDischarge
+0.18
+RightBoundaryImposedHeight
+0.33
+RightBoundaryImposedDischarge
+0.
+
+
+# Fichier de données pour la CL à gauche
+# Format csv a deux colonnes (temps, hauteur d'eau)
+# N'est utile que si LeftBoundaryCondition == DataFile
+LeftBoundaryDataFile
+water_height_35.csv
+
+# Fichier de données pour la CL à droite
+# Format csv a deux colonnes (temps, hauteur d'eau)
+# N'est utile que si RightBoundaryCondition == DataFile
+RightBoundaryDataFile
+water_height_35.csv
 
 
 ########################################
@@ -106,35 +150,13 @@ IsTopography
 
 # Type de topographie. Valeurs possibles :
 #      FlatBottom      -> Fond plat
-#      LinearUp        -> Droite ascendante (0 en xmin et 0.05 * xmax  en xmax)
-#      LinearDown      -> Droite descendante
-#      SineLinearUp    -> Pareil que LinearUp, mais avec des bosses en sinus...
-#      SineLinearDown  -> Pareil que LinearDown, mais avec des bosses en sinus...
-#      Parabola        -> Parabole (x + (xmax+xmin)/2)^2
-#      EllipticBump    -> Bosse elliptique
+#      Bump            -> Bosse
+#      Thacker         -> Thacker test case topography
 #      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-File
+Bump
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv
 TopographyFile
 topography_la_salie.csv
-
-
-# PAS ENCORE IMPLÉMENTÉ
-
-########################################
-###             Friction             ###
-########################################
-
-# Booléen indiquant s'il y a des frottements ou pas. PAS ENCORE IMPLÉMENTÉ.
-# Valeurs possibles
-#         0 -> Sans frottements
-#         1 -> Avec frottements
-isFriction
-0
-
-# Valeur du coefficient de frottement
-COF
-1e-5

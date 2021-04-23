@@ -38,7 +38,8 @@ public:
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getFluxVector() const {return _fluxVector;};
   
   // Build the flux vector
-  virtual void buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol) = 0;
+  virtual Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const = 0;
+  void buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 };
 
 class LaxFriedrichs: public FiniteVolume
@@ -52,7 +53,8 @@ public:
   void Initialize(DataFile* DF, Mesh* mesh, Function* function);
 
   // Build flux vector
-  void buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+  Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const;
+  // void buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 };
 
 class Rusanov: public FiniteVolume
@@ -66,7 +68,8 @@ public:
   void Initialize(DataFile* DF, Mesh* mesh, Function* function);
 
   // Build flux vector
-  void buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+  Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const;
+  // void buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 };
 
 class HLL: public FiniteVolume
@@ -80,7 +83,8 @@ public:
   void Initialize(DataFile* DF, Mesh* mesh, Function* function);
 
   // Build flux vector
-  void buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+  Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const;
+  // void buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 };
 
 #endif //FINITE_VOLUME_H

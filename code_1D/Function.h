@@ -21,7 +21,8 @@ private:
   int _nCells;
   Eigen::VectorXd _cellCenters;
 
-  //  Indice servant a parcourir donnees
+  // Variables utiles pour les donnees experimentales
+  Eigen::Matrix<double, Eigen::Dynamic, 2> _expBoundaryData;
   int _i;
 
   // Condition initiale
@@ -31,6 +32,9 @@ private:
   Eigen::Matrix<double, Eigen::Dynamic, 2> _topography;
   Eigen::Matrix<double, Eigen::Dynamic, 2> _source;
 
+  // Exact solution
+  Eigen::Matrix<double, Eigen::Dynamic, 2> _exactSol;
+  
 public:
   // Constructeur
   Function();
@@ -41,23 +45,36 @@ public:
   void Initialize(DataFile* DF, Mesh* mesh);
 
   // Getters
+  const Eigen::Matrix<double, Eigen::Dynamic, 2>& getExperimentalBoundaryData() const {return _expBoundaryData;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getInitialCondition() const {return _Sol0;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getTopography() const {return _topography;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getSourceTerm() const {return _source;};
-
+  const Eigen::Matrix<double, Eigen::Dynamic, 2>& getExactSolution() const {return _exactSol;};
+  
   // Construit le terme source
   void buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 
-  // Fonction flux du modèle (Saint-Venant 1D)
-  Eigen::Vector2d computeFlux(double h, double qx) const;
-
+  // Construit la solution exacte
+  void buildExactSolution(double t);
+  
   // Conditions aux limites
-  Eigen::Vector2d dirichletFunction(double x, double t);
-  Eigen::Vector2d neumannFunction(double x, double t, const Eigen::Matrix<double, Eigen::Dynamic, 2> donnees, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+  Eigen::Vector2d leftBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+  Eigen::Vector2d rightBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+  
+  // Compute the physical flux of the 1D SWE
+  Eigen::Vector2d physicalFlux(const Eigen::Vector2d& Sol) const;
+  // Compute the eigenvalues of the flux jacobian
+  void computeWaveSpeed(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD, double* lambda1, double* lambda2) const;
 
-  // Resolution equation degre 2
+  // Compute the exact solution of the case (if one exists)
+  Eigen::Vector2d exactSolution(double x, double t) const;
+  
+protected:
+  void buildTopography();
+  void buildInitialCondition();
+  void buildExpBoundaryData();
+  // Resolution equation second ordre
   double FindRacine(double a, double b, double c);
-
   // On cherche le terme source en x (pour x dans le domaine)
   double FindSourceX(double x);
 };

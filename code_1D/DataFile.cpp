@@ -11,14 +11,14 @@ DataFile::DataFile()
 }
 
 DataFile::DataFile(const std::string& fileName):
-  _fileName(fileName), _scenario("none")
+  _fileName(fileName), _initialCondition("none")
 {
 }
 
 void DataFile::Initialize(const std::string& fileName)
 {
   _fileName = fileName;
-  _scenario = "none";  
+  _initialCondition = "none";  
 }
 
 std::string DataFile::cleanLine(std::string &line)
@@ -44,8 +44,8 @@ std::string DataFile::cleanLine(std::string &line)
 void DataFile::readDataFile()
 {
   // Open the data file
-  std::ifstream data_file(_fileName.data());
-  if (!data_file.is_open())
+  std::ifstream dataFile(_fileName.data());
+  if (!dataFile.is_open())
     {
       std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open file " << _fileName << std::endl;
       std::cout << termcolor::reset;
@@ -58,74 +58,118 @@ void DataFile::readDataFile()
     }
   // Pour stocker chaque ligne
   std::string line;
-  // Run through the data_file to find the parameters
-  while (getline(data_file, line))
+  // Run through the dataFile to find the parameters
+  while (getline(dataFile, line))
     {
       // Clean line
       std::string proper_line(cleanLine(line));
-      if (proper_line.find("TimeScheme") != std::string::npos)
-        {
-          data_file >> _timeScheme;
-        }
-      if (proper_line.find("NumericalFlux") != std::string::npos)
-        {
-          data_file >> _numericalFlux;
-        }
       if (proper_line.find("ResultsDir") != std::string::npos)
         {
-          data_file >> _resultsDir;
+          dataFile >> _resultsDir;
         }
-      if (proper_line.find("xmin") != std::string::npos)
+      if (proper_line.find("SaveFinalResultOnly") != std::string::npos)
         {
-          data_file >> _xmin;
-        }
-      if (proper_line.find("xmax") != std::string::npos)
-        {
-          data_file >> _xmax;
-        }
-      if (proper_line.find("dx") != std::string::npos)
-        {
-          data_file >> _dx;
-        }
-      if (proper_line.find("InitialTime") != std::string::npos)
-        {
-          data_file >> _initialTime;
-        }
-      if (proper_line.find("FinalTime") != std::string::npos)
-        {
-          data_file >> _finalTime;
-        }
-      if (proper_line.find("TimeStep") != std::string::npos)
-        {
-          data_file >> _timeStep;
-        }
-      if (proper_line.find("CFL") != std::string::npos)
-        {
-          data_file >> _CFL;
-        }
-      if (proper_line.find("GravityAcceleration") != std::string::npos)
-        {
-          data_file >> _g;
+          dataFile >> _isSaveFinalTimeOnly;
         }
       if (proper_line.find("SaveFrequency") != std::string::npos)
         {
-          data_file >> _saveFrequency;
+          dataFile >> _saveFrequency;
         }
-      if (proper_line.find("Scenario") != std::string::npos)
+      if (proper_line.find("InitialCondition") != std::string::npos)
         {
-          data_file >> _scenario;
+          dataFile >> _initialCondition;
+        }
+      if (proper_line.find("InitialHeight") != std::string::npos)
+        {
+          dataFile >> _initialHeight;
+        }
+      if (proper_line.find("InitialDischarge") != std::string::npos)
+        {
+          dataFile >> _initialDischarge;
+        }
+      if (proper_line.find("xmin") != std::string::npos)
+        {
+          dataFile >> _xmin;
+        }
+      if (proper_line.find("xmax") != std::string::npos)
+        {
+          dataFile >> _xmax;
+        }
+      if (proper_line.find("dx") != std::string::npos)
+        {
+          dataFile >> _dx;
+        }
+      if (proper_line.find("NumericalFlux") != std::string::npos)
+        {
+          dataFile >> _numericalFlux;
+        }
+      if (proper_line.find("TimeScheme") != std::string::npos)
+        {
+          dataFile >> _timeScheme;
+        }
+      if (proper_line.find("InitialTime") != std::string::npos)
+        {
+          dataFile >> _initialTime;
+        }
+      if (proper_line.find("FinalTime") != std::string::npos)
+        {
+          dataFile >> _finalTime;
+        }
+      if (proper_line.find("TimeStep") != std::string::npos)
+        {
+          dataFile >> _timeStep;
+        }
+      if (proper_line.find("CFL") != std::string::npos)
+        {
+          dataFile >> _CFL;
+        }
+      if (proper_line.find("GravityAcceleration") != std::string::npos)
+        {
+          dataFile >> _g;
+        }
+      if (proper_line.find("LeftBoundaryCondition") != std::string::npos)
+        {
+          dataFile >> _leftBC;
+        }
+      if (proper_line.find("RightBoundaryCondition") != std::string::npos)
+        {
+          dataFile >> _rightBC;
+        }
+      if (proper_line.find("LeftBoundaryImposedHeight") != std::string::npos)
+        {
+          dataFile >> _leftBCImposedHeight;
+        }
+      if (proper_line.find("LeftBoundaryImposedDischarge") != std::string::npos)
+        {
+          dataFile >> _leftBCImposedDischarge;
+        }
+      if (proper_line.find("RightBoundaryImposedHeight") != std::string::npos)
+        {
+          dataFile >> _rightBCImposedHeight;
+        }
+      if (proper_line.find("RightBoundaryImposedDischarge") != std::string::npos)
+        {
+          dataFile >> _rightBCImposedDischarge;
+        }
+      if (proper_line.find("LeftBoundaryDataFile") != std::string::npos)
+        {
+          dataFile >> _leftBCDataFile;
+        }
+      if (proper_line.find("RightBoundaryDataFile") != std::string::npos)
+        {
+          dataFile >> _rightBCDataFile;
         }
       if (proper_line.find("IsTopography") != std::string::npos)
         {
-          data_file >> _isTopography;
+          dataFile >> _isTopography;
         }
       if (proper_line.find("TopographyType") != std::string::npos)
         {
-          data_file >> _topographyType;
+          dataFile >> _topographyType;
         }
       if (proper_line.find("TopographyFile") != std::string::npos)
         {
-          data_file >> _topographyFile;
+          dataFile >> _topographyFile;
         }
     }
 
@@ -138,14 +182,6 @@ void DataFile::readDataFile()
   // Logs
   std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
   std::cout << termcolor::reset;
-
-  // Pour le scénario LaSalie, impose la topographie et les CL
-  if (_scenario == "LaSalie")
-    {
-      _isTopography = true;
-      _topographyType = "File";
-      _topographyFile = "topography_la_salie.csv";
-    }
 
   // Si pas de topo --> impose un fond plat
   if (_isTopography == false)
@@ -217,23 +253,55 @@ void DataFile::printData() const
 {
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Printing parameters of " << _fileName << std::endl;
-  std::cout << "Mesh              = Generated" << std::endl;
-  std::cout << "  |xmin           = " << _xmin << std::endl;
-  std::cout << "  |xmax           = " << _xmax << std::endl;
-  std::cout << "  |dx             = " << _dx << std::endl;
-  std::cout << "Time Scheme       = " << _timeScheme << std::endl;
-  std::cout << "Initial time      = " << _initialTime << std::endl;
-  std::cout << "Final time        = " << _finalTime << std::endl;
-  std::cout << "Time step         = " << _timeStep << std::endl;
-  std::cout << "Gravity           = " << _g << std::endl;
-  std::cout << "Numerical Flux    = " << _numericalFlux << std::endl;
-  std::cout << "Results directory = " << _resultsDir << std::endl;
-  std::cout << "Save Frequency    = " << _saveFrequency << std::endl;
-  std::cout << "Scenario          = " << _scenario << std::endl;
-  std::cout << "Topography        = " << _topographyType << std::endl;
-  if (_topographyType == "File")
+  std::cout << "Mesh                 = Generated" << std::endl;
+  std::cout << "  |xmin              = " << _xmin << std::endl;
+  std::cout << "  |xmax              = " << _xmax << std::endl;
+  std::cout << "  |Nx                = " << _Nx << std::endl;
+  std::cout << "  |dx                = " << _dx << std::endl;
+  std::cout << "InitialCondition     = " << _initialCondition << std::endl;
+  if (_initialCondition == "UniformHeightAndDischarge")
     {
-      std::cout << "Topography file   = " << _topographyFile << std::endl;
+      std::cout << "  |Initial Height    = " << _initialHeight << std::endl;
+      std::cout << "  |Initial Discharge = " << _initialDischarge << std::endl;
     }
+  std::cout << "Numerical Flux       = " << _numericalFlux << std::endl;
+  std::cout << "Time Scheme          = " << _timeScheme << std::endl;
+  std::cout << "Initial time         = " << _initialTime << std::endl;
+  std::cout << "Final time           = " << _finalTime << std::endl;
+  std::cout << "Time step            = " << _timeStep << std::endl;
+  std::cout << "Gravity              = " << _g << std::endl;
+  std::cout << "Results directory    = " << _resultsDir << std::endl;
+  std::cout << "SaveFinalTimeOnly    = " << _isSaveFinalTimeOnly << std::endl;
+  if (!_isSaveFinalTimeOnly)
+    std::cout << "Save Frequency       = " << _saveFrequency << std::endl;
+  std::cout << "LeftBC               = " << _leftBC << std::endl;
+  if (_leftBC == "DataFile")
+      std::cout << "   |LeftBCFile    = " << _leftBCDataFile << std::endl;
+  if (_leftBC == "ImposedConstantHeight")
+    {
+      std::cout << "   |ImposedHeight    = " << _leftBCImposedHeight << std::endl;
+      std::cout << "   |ImposedDischarge = " << _leftBCImposedDischarge <<  "  (if supercritical) " <<std::endl;
+    }
+  if (_leftBC == "ImposedConstantDischarge")
+    {
+      std::cout << "   |ImposedHeight    = " << _leftBCImposedHeight << " (if supercritical)" << std::endl;
+      std::cout << "   |ImposedDischarge = " << _leftBCImposedDischarge << std::endl;
+    }
+  std::cout << "RightBC              = " << _rightBC << std::endl;
+  if (_rightBC == "DataFile")
+    std::cout << "   |RightBCFile      = " << _rightBCDataFile << std::endl;
+  if (_rightBC == "ImposedConstantHeight")
+    {
+      std::cout << "   |ImposedHeight    = " << _rightBCImposedHeight << std::endl;
+      std::cout << "   |ImposedDischarge = " << _rightBCImposedDischarge << " (if supercritical)" << std::endl;
+    }
+  if (_rightBC == "ImposedConstantDischarge")
+    {
+      std::cout << "   |ImposedHeight    = " << _rightBCImposedHeight << " (if supercritical)" << std::endl;
+      std::cout << "   |ImposedDischarge = " << _rightBCImposedDischarge << std::endl;
+    }
+  std::cout << "Topography           = " << _topographyType << std::endl;
+  if (_topographyType == "File")
+    std::cout << "Topography file      = " << _topographyFile << std::endl;
   std::cout << "====================================================================================================" << std::endl << std::endl;
 }

@@ -63,4 +63,18 @@ public:
   void oneStep();
 };
 
+class RK2: public TimeScheme
+{
+public:
+  // Constructeurs
+  RK2();
+  RK2(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+
+  // Initialiseur
+  void Initialize(DataFile* DF, Mesh* mesh, Function* function, FiniteVolume* finVol);
+
+  // One time step
+  void oneStep();
+};
+
 #endif // TIME_SCHEME_H

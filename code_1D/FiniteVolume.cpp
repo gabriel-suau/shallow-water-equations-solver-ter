@@ -9,6 +9,8 @@
 #include <iostream>
 #include <cmath>
 
+
+
 //--------------------------------------------------------//
 //---------------Classe mère flux numérique---------------//
 //--------------------------------------------------------//
@@ -16,18 +18,60 @@ FiniteVolume::FiniteVolume()
 {
 }
 
+
+
 FiniteVolume::FiniteVolume(DataFile* DF, Mesh* mesh, Function* function):
-  _DF(DF), _mesh(mesh), _function(function), _fluxVector(_mesh->getNumberOfCells() + 1, 2)
+  _DF(DF), _mesh(mesh), _function(function), _fluxVector(_mesh->getNumberOfCells(), 2)
 {
 }
+
+
 
 void FiniteVolume::Initialize(DataFile* DF, Mesh* mesh, Function* function)
 {
   _DF = DF;
   _mesh = mesh;
   _function = function;
-  _fluxVector.resize(_mesh->getNumberOfCells() + 1, 2);
+  _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
+
+
+void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+{
+  // Reset the flux
+  _fluxVector.setZero();
+
+  // Get mesh parameters
+  int nCells(_mesh->getNumberOfCells());
+  // Loop on the edges
+  for (int i(0) ; i <= nCells ; ++i)
+    {
+      Eigen::Vector2d SolG, SolD;
+      // Left Boundary
+      if (i == 0)
+        {
+          SolG = _function->leftBoundaryFunction(t + _DF->getTimeStep(), Sol);
+          SolD = Sol.row(0);
+          _fluxVector.row(0) += numFlux(SolG, SolD);
+        }
+      // Right Boundary
+      else if (i == nCells)
+        {
+          SolG = Sol.row(nCells - 1);
+          SolD = _function->rightBoundaryFunction(t + _DF->getTimeStep(), Sol);
+          _fluxVector.row(nCells - 1) -= numFlux(SolG, SolD);
+        }
+      // Interior
+      else
+        {
+          SolG = Sol.row(i-1);
+          SolD = Sol.row(i);
+          _fluxVector.row(i-1) -= numFlux(SolG, SolD);
+          _fluxVector.row(i) += numFlux(SolG, SolD);
+        }
+    }
+}
+
 
 //---------------------------------------------------//
 //---------------Flux de LaxFriedrichs---------------//
@@ -37,11 +81,15 @@ LaxFriedrichs::LaxFriedrichs():
 {
 }
 
+
+
 LaxFriedrichs::LaxFriedrichs(DataFile* DF, Mesh* mesh, Function* function):
   FiniteVolume(DF, mesh, function)
 {
   _fluxName = "LF";
 }
+
+
 
 void LaxFriedrichs::Initialize(DataFile* DF, Mesh* mesh, Function* function)
 {
@@ -49,68 +97,25 @@ void LaxFriedrichs::Initialize(DataFile* DF, Mesh* mesh, Function* function)
   _mesh = mesh;
   _function = function;
   _fluxName = "LF";
-  _fluxVector.resize(_mesh->getNumberOfCells() + 1, 2);
+  _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
 
-void LaxFriedrichs::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+
+Eigen::Vector2d LaxFriedrichs::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const
 {
-  // Récupère les données importantes
-  double g(_DF->getGravityAcceleration());
-  double dx(_DF->getDx()), dt(_DF->getTimeStep());
+  // Vecteur flux au travers d'une arete
+  Eigen::Vector2d flux;
+  
+  // Recupere dt et dx
+  double dt(_DF->getTimeStep()), dx(_DF->getDx());
   double b(dx/dt);
-  int nCells(Sol.rows());
 
-  // Boucle sur les arêtes
-  for (int i(0) ; i <= nCells ; ++i)
-    {
-      // Valeurs de la solution à gauche et à droite de l'arête
-      double hg, qg, hd, qd;
-      // CL à gauche (que Neumann homogène pour le moment)
-      if (i == 0)
-        {
-          hg = Sol(0,0);
-          qg = Sol(0,1);
-          hd = Sol(0,0);
-          qd = Sol(0,1);
-        }
-      // CL à droite (que Neumann homogène pour le moment)
-      else if (i == nCells)
-        {
-          hg = Sol(nCells-1,0);
-          qg = Sol(nCells-1,1);
-          hd = Sol(nCells-1,0);
-          qd = Sol(nCells-1,1);
-        }
-      // Arêtes intérieures
-      else
-        {
-          hg = Sol(i-1,0);
-          qg = Sol(i-1,1);
-          hd = Sol(i,0);
-          qd = Sol(i,1);
-        }
-      // Construit le flux
-      if (hg != 0. && hd != 0.)
-        {
-          _fluxVector(i,0) = 0.5 * (qd + qg - b * (hd - hg));
-          _fluxVector(i,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) + pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
-        }
-      else if (hg == 0. && hd != 0.)
-        {
-          _fluxVector(i,0) = 0.5 * (qd + qg - b * hd);
-          _fluxVector(i,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) - b * (qd - qg));
-        }
-      else if (hd == 0 && hg != 0)
-        {
-          _fluxVector(i,0) = 0.5 * (qd + qg + b * hg);
-          _fluxVector(i,1) = 0.5 * (pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
-        }
-      else
-        {
-          _fluxVector.row(i) << 0., 0.;
-        }
-    }
+  // Calcul du flux
+  flux = 0.5 * ((_function->physicalFlux(SolD) + _function->physicalFlux(SolG)) - b * (SolD - SolG));
+  
+  return flux;
 }
+
 
 //---------------------------------------------//
 //---------------Flux de Rusanov---------------//
@@ -120,11 +125,15 @@ Rusanov::Rusanov():
 {
 }
 
+
+
 Rusanov::Rusanov(DataFile* DF, Mesh* mesh, Function* function):
   FiniteVolume(DF, mesh, function)
 {
   _fluxName = "Rusanov";
 }
+
+
 
 void Rusanov::Initialize(DataFile* DF, Mesh* mesh, Function* function)
 {
@@ -132,77 +141,26 @@ void Rusanov::Initialize(DataFile* DF, Mesh* mesh, Function* function)
   _mesh = mesh;
   _function = function;
   _fluxName = "Rusanov";
-  _fluxVector.resize(_mesh->getNumberOfCells() + 1, 2);
+  _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
 
-void Rusanov::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
+
+Eigen::Vector2d Rusanov::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const
 {
-  // Récupère les données importantes
-  double g(_DF->getGravityAcceleration());
-  int nCells(Sol.rows());
+  // Vecteur flux au travers d'une arete
+  Eigen::Vector2d flux;
+  
+  // Calcul de b
+  double lambda1, lambda2;
+  _function->computeWaveSpeed(SolG, SolD, &lambda1, &lambda2);
+  double b(std::max(abs(lambda1),abs(lambda2)));
 
-  // Boucle sur les arêtes
-  for (int i(0) ; i <= nCells ; ++i)
-    {
-      // Valeurs de la solution à gauche et à droite de l'arête
-      double hg, qg, hd, qd;
-      // CL à gauche (que Neumann homogène pour le moment)
-      if (i == 0)
-        {
-          if (_DF->getScenario() == "LaSalie")
-          {
-            
-          }
-          hg = Sol(0,0);
-          qg = Sol(0,1);
-          hd = Sol(0,0);
-          qd = Sol(0,1);
-        }
-      // CL à droite (que Neumann homogène pour le moment)
-      else if (i == nCells)
-        {
-          hg = Sol(nCells-1,0);
-          qg = Sol(nCells-1,1);
-          hd = Sol(nCells-1,0);
-          qd = Sol(nCells-1,1);
-        }
-      // Arêtes intérieures
-      else
-        {
-          hg = Sol(i-1,0);
-          qg = Sol(i-1,1);
-          hd = Sol(i,0);
-          qd = Sol(i,1);
-        }
-      // Valeurs propres (pas tout à fait, mais bon...)
-      double lambda1(abs(qg/hg) + sqrt(g * hg));
-      double lambda2(abs(qd/hd) + sqrt(g * hd));
-      double b;
-      // Construit le flux
-      if (hg != 0. && hd != 0.)
-        {
-          b = std::max(lambda1,lambda2);
-          _fluxVector(i,0) = 0.5 * (qd + qg - b * (hd - hg));
-          _fluxVector(i,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) + pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (qd - qg));
-        }
-      else if (hg < 1e-6 && hd != 0.)
-        {
-          b = lambda2;
-          _fluxVector(i,0) = 0.5 * (qd - b * hd);
-          _fluxVector(i,1) = 0.5 * (pow(qd,2)/hd + 0.5*g*pow(hd,2) - b * (qd));
-        }
-      else if (hd < 1e-6 && hg != 0)
-        {
-          b = lambda1;
-          _fluxVector(i,0) = 0.5 * (qg + b * hg);
-          _fluxVector(i,1) = 0.5 * (pow(qg,2)/hg + 0.5*g*pow(hg,2) - b * (- qg));
-        }
-      else
-        {
-          _fluxVector.row(i) << 0., 0.;
-        }
-    }
+  // Calcul du flux
+  flux = 0.5 * ((_function->physicalFlux(SolD) + _function->physicalFlux(SolG)) - b * (SolD - SolG));
+  
+  return flux;
 }
+
 
 //--------------------------------------//
 //---------------Flux HLL---------------//
@@ -212,11 +170,15 @@ HLL::HLL():
 {
 }
 
+
+
 HLL::HLL(DataFile* DF, Mesh* mesh, Function* function):
   FiniteVolume(DF, mesh, function)
 {
   _fluxName = "HLL";
 }
+
+
 
 void HLL::Initialize(DataFile* DF, Mesh* mesh, Function* function)
 {
@@ -224,114 +186,32 @@ void HLL::Initialize(DataFile* DF, Mesh* mesh, Function* function)
   _mesh = mesh;
   _function = function;
   _fluxName = "HLL";
-  _fluxVector.resize(_mesh->getNumberOfCells() + 1, 2);
+  _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
 
-void HLL::buildFluxVector(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
-{
-  // Récupère les données importantes
-  double g(_DF->getGravityAcceleration());
-  int nCells(Sol.rows());
 
-  // Boucle sur les arêtes
-  for (int i(0) ; i <= nCells ; ++i)
+Eigen::Vector2d HLL::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const
+{
+  // Vecteur flux au travers d'une arete
+  Eigen::Vector2d flux;
+  
+  // Calcul de b
+  double lambda1, lambda2;
+  _function->computeWaveSpeed(SolG, SolD, &lambda1, &lambda2);
+
+  // Calcul du flux
+  if (0 <= lambda1)
     {
-      // Valeurs de la solution à gauche et à droite de l'arête
-      double hg, qg, hd, qd;
-      // CL à gauche (que Neumann homogène pour le moment)
-      if (i == 0)
-        {
-          hg = Sol(0,0);
-          qg = Sol(0,1);
-          hd = Sol(0,0);
-          qd = Sol(0,1);
-        }
-      // CL à droite (que Neumann homogène pour le moment)
-      else if (i == nCells)
-        {
-          hg = Sol(nCells-1,0);
-          qg = Sol(nCells-1,1);
-          hd = Sol(nCells-1,0);
-          qd = Sol(nCells-1,1);
-        }
-      // Arêtes intérieures
-      else
-        {
-          hg = Sol(i-1,0);
-          qg = Sol(i-1,1);
-          hd = Sol(i,0);
-          qd = Sol(i,1);
-        }
-      // Valeurs propres (cette fois c'est bien les valeurs propres)
-      double lambda1(qg/hg + sqrt(g * hg));
-      double lambda2(qg/hg - sqrt(g * hg));
-      double lambda3(qd/hd + sqrt(g * hd));
-      double lambda4(qd/hd - sqrt(g * hd));
-      double c1, c2;
-      // Construit le flux
-      if (hg != 0. && hd != 0.)
-        {
-          c1 = std::min(lambda2,lambda4);
-          c2 = std::max(lambda1,lambda3);
-          if (c1 >= 0.)
-            {
-              _fluxVector(i,0) = qg;
-              _fluxVector(i,1) = qg*qg/hg + 0.5*g*hg*hg;
-            }
-          else if (c1 < 0. && 0. < c2)
-            {
-              _fluxVector(i,0) = (c2 * qg - c1 * qd + c1*c2 * (hd - hg))/(c2 - c1);
-              _fluxVector(i,1) = (c2 * (qg*qg/hg + 0.5*g*hg*hg) - c1 * (qd*qd/hd + 0.5*g*hd*hd) + c1*c2*(qd - qg))/(c2 - c1);
-            }
-          else if (c2 <= 0.)
-            {
-              _fluxVector(i,0) = qd;
-              _fluxVector(i,1) = qd*qd/hd + 0.5*g*hd*hd;
-            }
-        }
-      else if (hg < 1e-6 && hd != 0.)
-        {
-          c1 = lambda4;
-          c2 = lambda3;
-          if (c1 >= 0.)
-            {
-              _fluxVector(i,0) = 0.;
-              _fluxVector(i,1) = 0.;
-            }
-          else if (c1 < 0. && 0. < c2)
-            {
-              _fluxVector(i,0) = (- c1 * qd + c1*c2 * hd)/(c2 - c1);
-              _fluxVector(i,1) = (- c1 * (qd*qd/hd + 0.5*g*hd*hd) + c1*c2*qd)/(c2 - c1);
-            }
-          else if (c2 <= 0.)
-            {
-              _fluxVector(i,0) = qd;
-              _fluxVector(i,1) = qd*qd/hd + 0.5*g*hd*hd;
-            }
-        }
-      else if (hd < 1e-6 && hg != 0)
-        {
-          c1 = lambda2;
-          c2 = lambda1;
-          if (c1 >= 0.)
-            {
-              _fluxVector(i,0) = qg;
-              _fluxVector(i,1) = qg*qg/hg + 0.5*g*hg*hg;
-            }
-          else if (c1 < 0. && 0. < c2)
-            {
-              _fluxVector(i,0) = (c2 * qg - c1*c2 * hg)/(c2 - c1);
-              _fluxVector(i,1) = (c2 * (qg*qg/hg + 0.5*g*hg*hg) - c1*c2*qg)/(c2 - c1);
-            }
-          else if (c2 <= 0.)
-            {
-              _fluxVector(i,0) = 0.;
-              _fluxVector(i,1) = 0.;
-            }
-        }
-      else
-        {
-          _fluxVector.row(i) << 0., 0.;
-        }
+      flux = _function->physicalFlux(SolG);
     }
+  else if (lambda1 < 0 && 0 < lambda2)
+    {
+      flux = (lambda2 * _function->physicalFlux(SolG) - lambda1 * _function->physicalFlux(SolD) + lambda2 * lambda1 * (SolD - SolG))/(lambda2 - lambda1);
+    }
+  else if (lambda2 <= 0)
+    {
+      flux = _function->physicalFlux(SolD);
+    }
+  
+  return flux;
 }

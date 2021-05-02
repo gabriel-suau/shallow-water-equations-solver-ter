@@ -47,6 +47,10 @@ public:
   virtual void oneStep() = 0;
   void saveCurrentSolution(std::string& fileName) const;
   void solve();
+
+  // Error
+  Eigen::Vector2d computeL2Error() const;
+  Eigen::Vector2d computeL1Error() const;
 };
 
 class ExplicitEuler: public TimeScheme

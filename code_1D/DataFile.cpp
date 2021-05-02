@@ -51,11 +51,14 @@ void DataFile::readDataFile()
       std::cout << termcolor::reset;
       exit(-1);
     }
+#if VERBOSITY>0
   else
     {
       std::cout << "====================================================================================================" << std::endl;
       std::cout << "Reading data file " << _fileName << std::endl;
     }
+#endif
+  
   // Pour stocker chaque ligne
   std::string line;
   // Run through the dataFile to find the parameters
@@ -74,6 +77,14 @@ void DataFile::readDataFile()
       if (proper_line.find("SaveFrequency") != std::string::npos)
         {
           dataFile >> _saveFrequency;
+        }
+      if (proper_line.find("IsTestCase") != std::string::npos)
+        {
+          dataFile >> _isTestCase;
+        }
+      if (proper_line.find("WhichTestCase") != std::string::npos)
+        {
+          dataFile >> _testCase;
         }
       if (proper_line.find("InitialCondition") != std::string::npos)
         {
@@ -102,6 +113,10 @@ void DataFile::readDataFile()
       if (proper_line.find("NumericalFlux") != std::string::npos)
         {
           dataFile >> _numericalFlux;
+        }
+      if (proper_line.find("Order") != std::string::npos)
+        {
+          dataFile >> _schemeOrder;
         }
       if (proper_line.find("TimeScheme") != std::string::npos)
         {
@@ -174,83 +189,56 @@ void DataFile::readDataFile()
     }
 
   // Création et nettoyage du dossier de résultats
+#if VERBOSITY>0
   std::cout << "Creating the results directory..." << std::endl;
+#endif
+  
   system(("mkdir -p ./" +_resultsDir).c_str());
   system(("rm -f ./" +_resultsDir + "/solution*").c_str());
   system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/parameters.txt").c_str());
 
   // Logs
+#if VERBOSITY>0
   std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
   std::cout << termcolor::reset;
+#endif
 
   // Si pas de topo --> impose un fond plat
-  if (_isTopography == false)
+  if (!_isTopography)
     {
       _topographyType = "FlatBottom";
     }
-
-  // Ajustement des paramètres du maillage
-  // Si fichier de topographie, fait correspondre le maillage aux données
-  if (_topographyType == "File")
+  // Si pas de cas test
+  if (!_isTestCase)
     {
-      std::ifstream topoStream(_topographyFile.data());
-      if (!topoStream.is_open())
-        {
-          std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open the topography file " << _topographyFile << std::endl;
-          std::cout << termcolor::reset;
-          exit(-1);
-        }
-      else
-        {
-          std::cout << "Reading topography file " << _topographyFile << std::endl;
-        }
-      std::cout << termcolor::magenta << "WARNING::DATAFILE : Adjusting the mesh parameters to fit with the topography." << std::endl;
-      std::cout << termcolor::reset;
-      // Réinitialise les paramètres du maillage
-      _xmin = 0.;
-      _xmax = 0.;
-      _Nx = 1;
-      double dummy;
-      std::string properLine;
-      // Lit la première ligne pour récupérer _xmin
-      getline(topoStream, line);
-      properLine = regex_replace(line, std::regex(","), std::string(" "));
-      std::stringstream ss(properLine);
-      ss >> _xmin >> dummy;
-      // Lit le reste du fichier pour récupérer le nombre de cellules, _xmax et dx
-      while (getline(topoStream, line))
-        {
-          properLine = regex_replace(line, std::regex(","), std::string(" "));
-          std::stringstream ss(properLine);
-          ss >> _xmax >> dummy;
-          ++_Nx;
-        }
-      _dx = (_xmax - _xmin)/_Nx;
-      // Affiche les nouvelles valeurs
-      std::cout << "New values : " << std::endl;
-      std::cout << "  |xmin           = " << _xmin << std::endl;
-      std::cout << "  |xmax           = " << _xmax << std::endl;
-      std::cout << "  |dx             = " << _dx << std::endl;
+      _testCase = "None";
     }
-  // Sinon, ajuste uniquement dx pour coller avec le domaine
-  else
-    {
-      // Ajustement du pas d'espace pour correspondre au domaine
-      std::cout << termcolor::magenta << "WARNING::DATAFILE : Adjusting dx to fit within the spatial domain." << std::endl;
-      _Nx = int(ceil((_xmax - _xmin)/_dx));
-      _dx = (_xmax - _xmin)/_Nx;
-      // Affiche la nouvelle valeur
-      std::cout << termcolor::reset << "New value : dx = " << _dx << std::endl;
-    }
+  
+  // Ajustement du pas d'espace pour correspondre au domaine
+#if VERBOSITY>0
+  std::cout << termcolor::magenta << "WARNING::DATAFILE : Adjusting dx to fit within the spatial domain." << std::endl;
+#endif
+  
+  _Nx = int(ceil((_xmax - _xmin)/_dx));
+  _dx = (_xmax - _xmin)/_Nx;
+  
+#if VERBOSITY>0
+  std::cout << termcolor::magenta << "New value : dx = " << _dx << std::endl;
+  std::cout << termcolor::reset;
+#endif
+  
   // Logs de succès
+#if VERBOSITY>0
   std::cout << termcolor::green << "SUCCESS::DATAFILE : File read successfully" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+#endif
 }
 
 
 // Affiche les paramètres sur le terminal
 void DataFile::printData() const
 {
+#if VERBOSITY>0
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Printing parameters of " << _fileName << std::endl;
   std::cout << "Mesh                 = Generated" << std::endl;
@@ -258,6 +246,9 @@ void DataFile::printData() const
   std::cout << "  |xmax              = " << _xmax << std::endl;
   std::cout << "  |Nx                = " << _Nx << std::endl;
   std::cout << "  |dx                = " << _dx << std::endl;
+  std::cout << "Is Test Case         = " << _isTestCase << std::endl;
+  if (_isTestCase)
+    std::cout << "Test Case            = " << _testCase << std::endl;
   std::cout << "InitialCondition     = " << _initialCondition << std::endl;
   if (_initialCondition == "UniformHeightAndDischarge")
     {
@@ -265,6 +256,7 @@ void DataFile::printData() const
       std::cout << "  |Initial Discharge = " << _initialDischarge << std::endl;
     }
   std::cout << "Numerical Flux       = " << _numericalFlux << std::endl;
+  std::cout << "Order                = " << _schemeOrder << std::endl;
   std::cout << "Time Scheme          = " << _timeScheme << std::endl;
   std::cout << "Initial time         = " << _initialTime << std::endl;
   std::cout << "Final time           = " << _finalTime << std::endl;
@@ -304,4 +296,6 @@ void DataFile::printData() const
   if (_topographyType == "File")
     std::cout << "Topography file      = " << _topographyFile << std::endl;
   std::cout << "====================================================================================================" << std::endl << std::endl;
+#endif
+  
 }

@@ -40,6 +40,10 @@ public:
   // Build the flux vector
   virtual Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const = 0;
   void buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
+
+protected:
+  // Minmod slope limiter for the 2nd order MUSCL schemes
+  double minmod(double a, double b) const;
 };
 
 class LaxFriedrichs: public FiniteVolume

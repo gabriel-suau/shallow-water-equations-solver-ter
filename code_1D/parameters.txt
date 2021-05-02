@@ -9,7 +9,7 @@
 
 # Schéma en temps. Valeurs possibles :
 #        ExplicitEuler
-#        RK2
+#        RK2 (Mid Point method)
 TimeScheme
 ExplicitEuler
 
@@ -20,20 +20,24 @@ ExplicitEuler
 NumericalFlux
 HLL
 
+# Ordre du schéma. Valeurs possibles 1 ou 2.
+Order
+1
+
 # Paramètres du maillage
 xmin
 0.
 xmax
 25.
 dx
-0.02
-
+0.05
+        
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-300
+2
 TimeStep
 0.002
 CFL
@@ -50,7 +54,7 @@ GravityAcceleration
 
 # Répertoire où stocker les résultats
 ResultsDir
-results
+results1
 
 # Sauvegarder uniquement le résultat à t=FinalTime
 SaveFinalResultOnly
@@ -59,15 +63,35 @@ SaveFinalResultOnly
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 # Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
-500
+50
 
 
-###################################
-###             CI/CL           ###
-###################################
+#########################################
+###             Test case ?           ###
+#########################################
+
+# Set to 1 if you are simulating a test case whose analytic solution is implemented
+# Set to 0 either
+IsTestCase
+1
+
+# Which test case ? Ignoré si IsTestCase == 0. Valeurs possibles :
+#       RestingLake
+#       SubcriticalFlow
+#       TranscriticalFlowWithoutShock
+#       TranscriticalFlowWithShock
+#       DamBreakWet (not yet)
+#       DamBreakDry (not yet)
+WhichTestCase
+RestingLake
+
+
+###############################################
+###             Initial Condition           ###
+###############################################
 
 # Choix d'une CI.
-# Valeurs possibles
+# Valeurs possibles :
 #       SinePerturbation          -> CI=1/2 période de sinus au milieu du domaine.
 #       UniformHeightAndDischarge -> 
 #       DamBreakWet               -> Rupture de barrage classique
@@ -79,10 +103,14 @@ UniformHeightAndDischarge
 # Choix de la cote de la surface libre (H = h + z) et du débit initial dans le domaine
 # N'est utile que si InitialCondition == UniformHeightAndDischarge
 InitialHeight
-0.33
+2.
 InitialDischarge
 0.
 
+
+#################################################
+###             Boundary Conditions           ###
+#################################################
 
 # Choix d'une CL à gauche. Valeurs possibles
 #       Neumann
@@ -93,7 +121,7 @@ InitialDischarge
 #       DataFile
 #       PeriodicWaves
 LeftBoundaryCondition
-ImposedConstantDischarge
+ImposedConstantHeight
 
 
 # Choix d'une CL à droite. Valeurs possibles
@@ -113,14 +141,12 @@ ImposedConstantHeight
 #     - LeftBoundaryCondition == ImposedConstantHeight || ImposedConstantDischarge
 #     - RightBoundaryCondition == ImposedConstantHeight || ImposedConstantDischarge
 # De plus, seulement 2 de ces 4 valeurs seront imposées (régime fluvial ou torrentiel)
-
-
 LeftBoundaryImposedHeight
-0.33
+2.
 LeftBoundaryImposedDischarge
-0.18
+4.42
 RightBoundaryImposedHeight
-0.33
+2.
 RightBoundaryImposedDischarge
 0.
 
@@ -129,7 +155,7 @@ RightBoundaryImposedDischarge
 # Format csv a deux colonnes (temps, hauteur d'eau)
 # N'est utile que si LeftBoundaryCondition == DataFile
 LeftBoundaryDataFile
-water_height_35.csv
+exp_data/water_height_35.csv
 
 # Fichier de données pour la CL à droite
 # Format csv a deux colonnes (temps, hauteur d'eau)
@@ -159,4 +185,4 @@ Bump
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv
 TopographyFile
-topography_la_salie.csv
+exp_data/topography_la_salie.csv

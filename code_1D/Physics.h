@@ -19,7 +19,6 @@ private:
   double _xmin, _xmax;
   double _g;
   int _nCells;
-  Eigen::VectorXd _cellCenters;
 
   // Variables utiles pour les donnees experimentales
   Eigen::Matrix<double, Eigen::Dynamic, 2> _expBoundaryData;
@@ -28,8 +27,9 @@ private:
   // Condition initiale
   Eigen::Matrix<double, Eigen::Dynamic, 2> _Sol0;
 
-  // Topographie (x,z) pour le terme source.
-  Eigen::Matrix<double, Eigen::Dynamic, 2> _topography;
+  // Topographie pour le terme source.
+  Eigen::Matrix<double, Eigen::Dynamic, 2> _fileTopography;
+  Eigen::VectorXd _topography;
   Eigen::Matrix<double, Eigen::Dynamic, 2> _source;
 
   // Exact solution
@@ -47,15 +47,16 @@ public:
   // Getters
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getExperimentalBoundaryData() const {return _expBoundaryData;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getInitialCondition() const {return _Sol0;};
-  const Eigen::Matrix<double, Eigen::Dynamic, 2>& getTopography() const {return _topography;};
+  const Eigen::VectorXd& getTopography() const {return _topography;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getSourceTerm() const {return _source;};
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& getExactSolution() const {return _exactSol;};
   
   // Construit le terme source
   void buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 
-  // Construit la solution exacte
-  void buildExactSolution(double t);
+  // Construit/Sauvegarde la solution exacte
+  void buildExactSolution();
+  void saveExactSolution(std::string& fileName) const;
   
   // Conditions aux limites
   Eigen::Vector2d leftBoundaryFunction(double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
@@ -65,9 +66,6 @@ public:
   Eigen::Vector2d physicalFlux(const Eigen::Vector2d& Sol) const;
   // Compute the eigenvalues of the flux jacobian
   void computeWaveSpeed(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD, double* lambda1, double* lambda2) const;
-
-  // Compute the exact solution of the case (if one exists)
-  Eigen::Vector2d exactSolution(double x, double t) const;
   
 protected:
   void buildTopography();
@@ -77,6 +75,15 @@ protected:
   double FindRacine(double a, double b, double c);
   // On cherche le terme source en x (pour x dans le domaine)
   double FindSourceX(double x);
+
+  // Méthode de Cardan pour la résolution de ax^3 + bx^2 + cx + d = 0
+  // qui intervient dans la solution exacte des ecoulements au dessus d'une bosse
+  void computeCoeffabcd(double qIn, double hOut, double z, double zEnd, double* a, double* b, double* c, double *d);
+  double cardanP(double a, double b, double c) const;
+  double cardanQ(double a, double b, double c, double d) const;
+  double cardanDet(double p, double q) const;
+  double exactHeight(double p, double q, double a, double b, double hnear, double hMax) const;
+  double RHJump(double hplus, double hminus, double q) const;
 };
 
 #endif // PHYSICS_H

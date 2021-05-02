@@ -15,6 +15,10 @@ private:
   bool _isSaveFinalTimeOnly;
   int _saveFrequency;
 
+  // Test cases
+  bool _isTestCase;
+  std::string _testCase;
+  
   // Conditions initiales
   std::string _initialCondition;
   double _initialHeight, _initialDischarge;
@@ -26,6 +30,7 @@ private:
   
   // Numerical Flux
   std::string _numericalFlux;
+  int _schemeOrder;
   
   // Time parameters
   std::string _timeScheme;
@@ -71,6 +76,9 @@ public:
   const std::string& getResultsDirectory() const {return _resultsDir;};
   bool isSaveFinalTimeOnly() const {return _isSaveFinalTimeOnly;};
   int getSaveFrequency() const {return _saveFrequency;};
+  // Test cases
+  bool isTestCase() const {return _isTestCase;};
+  const std::string& getTestCase() const {return _testCase;};
   // Initial Conditions
   const std::string& getInitialCondition() const {return _initialCondition;};
   double getInitialHeight() const {return _initialHeight;};
@@ -82,6 +90,7 @@ public:
   int getNx() const {return _Nx;};
   // Numerical flux related
   const std::string& getNumericalFlux() const {return _numericalFlux;};
+  int getSchemeOrder() const {return _schemeOrder;};
   // Time scheme related
   const std::string& getTimeScheme() const {return _timeScheme;};
   double getInitialTime() const {return _initialTime;};

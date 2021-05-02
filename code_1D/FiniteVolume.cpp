@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <cmath>
-
+#include <algorithm>
 
 
 //--------------------------------------------------------//
@@ -36,6 +36,7 @@ void FiniteVolume::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 }
 
 
+
 void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol)
 {
   // Reset the flux
@@ -43,33 +44,103 @@ void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, E
 
   // Get mesh parameters
   int nCells(_mesh->getNumberOfCells());
-  // Loop on the edges
-  for (int i(0) ; i <= nCells ; ++i)
+  double dx(_mesh->getSpaceStep());
+
+  // Vectors to store the reconstruted values at the left and right of each interface
+  Eigen::Matrix<double, Eigen::Dynamic, 2> SolD, SolG;
+  SolD.resize(nCells + 1, 2);
+  SolG.resize(nCells + 1, 2);
+
+  // Select order of the scheme
+  switch(_DF->getSchemeOrder())
     {
-      Eigen::Vector2d SolG, SolD;
-      // Left Boundary
-      if (i == 0)
+      // First order, the reconstructed values are the cell-centered approximations
+    case 1:
+      // Left boundary
+      SolG.row(0) = _physics->leftBoundaryFunction(t + _DF->getTimeStep(), Sol);
+      SolD.row(0) = Sol.row(0);
+      // Right boundary
+      SolG.row(nCells) = Sol.row(nCells - 1);
+      SolD.row(nCells) = _physics->rightBoundaryFunction(t + _DF->getTimeStep(), Sol);
+      // Interior edges
+      for (int i(1) ; i < nCells ; ++i)
         {
-          SolG = _physics->leftBoundaryFunction(t + _DF->getTimeStep(), Sol);
-          SolD = Sol.row(0);
-          _fluxVector.row(0) += numFlux(SolG, SolD);
+          SolG.row(i) = Sol.row(i-1);
+          SolD.row(i) = Sol.row(i);
         }
-      // Right Boundary
-      else if (i == nCells)
+      break;
+      
+      // Second Order MUSCL, the reconstructed values are obtained via linear interpolation
+      // + slope limitation (minmod limiter) to get a TVD scheme.
+    case 2:
+      // Vector to store the slopes and the limited slopes for the piecewise linear reconstruction
+      Eigen::Matrix<double, Eigen::Dynamic, 2> slopes, limSlopes;
+      slopes.resize(nCells + 1, 2);
+      limSlopes.resize(nCells, 2);
+      
+      // Compute the slopes
+      // Left boundary
+      Eigen::Vector2d leftBoundarySol(_physics->leftBoundaryFunction(t + _DF->getTimeStep(), Sol));
+      slopes(0,0) = (Sol(0,0) - leftBoundarySol(0)) / dx;
+      slopes(0,1) = (Sol(0,1) - leftBoundarySol(1)) / dx;
+      // Right boundary
+      Eigen::Vector2d rightBoundarySol(_physics->rightBoundaryFunction(t + _DF->getTimeStep(), Sol));
+      slopes(nCells, 1) = (rightBoundarySol(0) - Sol(nCells - 1, 0)) / dx;
+      slopes(nCells, 1) = (rightBoundarySol(1) - Sol(nCells - 1, 1)) / dx;
+      // Interior edges
+      for (int i(1) ; i < nCells ; ++i)
         {
-          SolG = Sol.row(nCells - 1);
-          SolD = _physics->rightBoundaryFunction(t + _DF->getTimeStep(), Sol);
-          _fluxVector.row(nCells - 1) -= numFlux(SolG, SolD);
+          slopes.row(i) = (Sol.row(i) - Sol.row(i-1)) / dx;
         }
-      // Interior
-      else
+
+      // Limit the slopes
+      for (int i(0) ; i < nCells - 1 ; ++i)
         {
-          SolG = Sol.row(i-1);
-          SolD = Sol.row(i);
-          _fluxVector.row(i-1) -= numFlux(SolG, SolD);
-          _fluxVector.row(i) += numFlux(SolG, SolD);
+          limSlopes(i,0) = minmod(slopes(i,0), slopes(i+1,0));
+          limSlopes(i,1) = minmod(slopes(i,1), slopes(i+1,1));
         }
+
+      // Reconstruct the values at each edge
+      // Left boundary
+      SolG.row(0) = leftBoundarySol;
+      SolD.row(0) = Sol.row(0) - 0.5 * dx * limSlopes.row(0);
+      // Right boundary
+      SolG.row(nCells) = Sol.row(nCells - 1) + 0.5 * dx * limSlopes.row(nCells - 1);
+      SolD.row(nCells) = rightBoundarySol;
+      // Interior edges
+      for (int i(1) ; i < nCells ; ++i)
+        {
+          SolG.row(i) = Sol.row(i-1) + 0.5 * dx * limSlopes.row(i-1);
+          SolD.row(i) = Sol.row(i) - 0.5 * dx * limSlopes.row(i);
+        }
+      break;
     }
+  
+  // Build the flux vector using the reconstructed values at each edge
+  // Left boundary contribution
+  _fluxVector.row(0) += numFlux(SolG.row(0), SolD.row(0));
+  // Interior fluxes contribution
+  for (int i(1) ; i < nCells; ++i)
+    {
+      Eigen::Vector2d flux(numFlux(SolG.row(i), SolD.row(i)));
+      _fluxVector.row(i-1) -= flux;
+      _fluxVector.row(i) += flux;
+    }
+  // Right boundary contribution
+  _fluxVector.row(nCells - 1) -= numFlux(SolG.row(nCells), SolD.row(nCells));
+}
+
+
+
+// Minmod slope limiter
+double FiniteVolume::minmod(double a, double b) const
+{
+  if (a * b < 0)
+    return 0.;
+  else if (abs(a) < abs(b))
+    return a;
+  else
+    return b;
 }
 
 
@@ -101,6 +172,7 @@ void LaxFriedrichs::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 }
 
 
+
 Eigen::Vector2d LaxFriedrichs::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const
 {
   // Vecteur flux au travers d'une arete
@@ -115,6 +187,7 @@ Eigen::Vector2d LaxFriedrichs::numFlux(const Eigen::Vector2d& SolG, const Eigen:
   
   return flux;
 }
+
 
 
 //---------------------------------------------//
@@ -145,6 +218,7 @@ void Rusanov::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
 }
 
 
+
 Eigen::Vector2d Rusanov::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const
 {
   // Vecteur flux au travers d'une arete
@@ -160,6 +234,7 @@ Eigen::Vector2d Rusanov::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vecto
   
   return flux;
 }
+
 
 
 //--------------------------------------//
@@ -188,6 +263,7 @@ void HLL::Initialize(DataFile* DF, Mesh* mesh, Physics* physics)
   _fluxName = "HLL";
   _fluxVector.resize(_mesh->getNumberOfCells(), 2);
 }
+
 
 
 Eigen::Vector2d HLL::numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const

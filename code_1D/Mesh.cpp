@@ -29,14 +29,18 @@ void Mesh::Initialize(DataFile* DF)
 
 void Mesh::Initialize()
 {
+#if VERBOSITY>0
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Generating a 1D cartesian mesh..." << std::endl;
+#endif
   for (int i(0) ; i < _numberOfCells ; ++i)
     {
       _cellBoundaries(i) = _xmin + i * _dx;
       _cellCenters(i) = _cellBoundaries(i) + 0.5 * _dx;
     }
   _cellBoundaries(_numberOfCells) = _xmax;
+#if VERBOSITY>0
   std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+#endif
 }

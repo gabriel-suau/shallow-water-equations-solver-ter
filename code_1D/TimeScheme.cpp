@@ -46,7 +46,9 @@ void TimeScheme::Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVo
 
 void TimeScheme::saveCurrentSolution(std::string& fileName) const
 {
+#if VERBOSITY>0
   std::cout << "Saving solution at t = " << _currentTime << std::endl;
+#endif
   std::ofstream outputFile(fileName, std::ios::out);
   const Eigen::VectorXd& cellCenters(_mesh->getCellCenters());
   double g(_DF->getGravityAcceleration());
@@ -55,7 +57,7 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
   for (int i(0) ; i < _Sol.rows() ; ++i)
     {
       outputFile << cellCenters(i) << " " <<
-        _Sol(i,0) + _physics->getTopography()(i,1) << " " <<
+        _Sol(i,0) + _physics->getTopography()(i) << " " <<
         _Sol(i,0) << " " <<
         _Sol(i,1)/_Sol(i,0) << " " <<
         _Sol(i,1) << " " <<
@@ -68,9 +70,11 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
 void TimeScheme::solve()
 {
   // Logs de début
+#if VERBOSITY>0
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Time loop..." << std::endl;
-
+#endif
+  
   // Variables pratiques
   int n(0);
   std::string resultsDir(_DF->getResultsDirectory());
@@ -85,7 +89,7 @@ void TimeScheme::solve()
   std::ofstream topoFile(topoFileName, std::ios::out);
   for (int i(0) ; i < _Sol.rows() ; ++i)
     {
-      topoFile << _physics->getTopography()(i,0) << " " << _physics->getTopography()(i,1) << std::endl;
+      topoFile << _mesh->getCellCenters()(i) << " " << _physics->getTopography()(i) << std::endl;
     }
   
   // Boucle en temps
@@ -105,10 +109,48 @@ void TimeScheme::solve()
       std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".txt");
       saveCurrentSolution(fileName);
     }
-  
+  if (_DF->isTestCase())
+    {
+      _physics->buildExactSolution();
+      std::string fileName(resultsDir + "/solution_exacte.txt");
+      _physics->saveExactSolution(fileName);
+      double L2errorHeight(computeL2Error()(0));
+      double L2errorDischarge(computeL2Error()(1));
+      std::cout << "Error h  L2 = " << L2errorHeight << " and error q L2 = " << L2errorDischarge << " for dx = " << _DF->getDx() << std::endl;
+      double L1errorHeight(computeL1Error()(0));
+      double L1errorDischarge(computeL1Error()(1));
+      std::cout << "Error h  L1 = " << L1errorHeight << " and error q L1 = " << L1errorDischarge << " for dx = " << _DF->getDx() << std::endl;
+    }
   // Logs de fin
+#if VERBOSITY>0
   std::cout << termcolor::green << "TIMESCHEME::SUCCESS : Solved 1D St-Venant equations successfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+#endif
+}
+
+
+Eigen::Vector2d TimeScheme::computeL2Error() const
+{
+  Eigen::Vector2d error(0., 0.);
+  const Eigen::Matrix<double, Eigen::Dynamic, 2>& exactSol(_physics->getExactSolution());
+  error(0) = (_Sol.col(0) - exactSol.col(0)).norm();
+  error(1) = (_Sol.col(1) - exactSol.col(1)).norm();
+  error *= sqrt(_DF->getDx());
+  return error;
+}
+
+
+Eigen::Vector2d TimeScheme::computeL1Error() const
+{
+  Eigen::Vector2d error(0., 0.);
+  const Eigen::Matrix<double, Eigen::Dynamic, 2>& exactSol(_physics->getExactSolution());
+  for (int i(0) ; i < _Sol.rows() ; ++i)
+    {
+      error(0) += abs(_Sol(i,0) - exactSol(i,0));
+      error(1) += abs(_Sol(i,1) - exactSol(i,1));
+    }
+  error *= _DF->getDx();
+  return error;
 }
 
 

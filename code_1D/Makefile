@@ -10,6 +10,13 @@
 CC        = g++
 CXX_FLAGS = -std=c++11 -I Eigen/Eigen
 
+# Verbosity level (0,1,2)
+# 	0 = Beginning, error and ending logs (not verbose)
+# 	1 = All of the above + saving logs (more verbose)
+VERBOSITY_LEVEL = 0
+
+CXX_FLAGS += -DVERBOSITY=$(VERBOSITY_LEVEL)
+
 # Flags d'optimisation et de debug
 OPTIM_FLAGS = -O2 -DNDEBUG
 DEBUG_FLAGS = -O0 -g -DDEBUG -pedantic

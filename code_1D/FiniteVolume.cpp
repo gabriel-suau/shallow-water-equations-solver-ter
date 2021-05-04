@@ -88,7 +88,7 @@ void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, E
       slopes(0,1) = (Sol(0,1) - leftBoundarySol(1)) / dx;
       // Right boundary
       Eigen::Vector2d rightBoundarySol(_physics->rightBoundaryFunction(t + _DF->getTimeStep(), Sol));
-      slopes(nCells, 1) = (rightBoundarySol(0) - Sol(nCells - 1, 0)) / dx;
+      slopes(nCells, 0) = (rightBoundarySol(0) - Sol(nCells - 1, 0)) / dx;
       slopes(nCells, 1) = (rightBoundarySol(1) - Sol(nCells - 1, 1)) / dx;
       // Interior edges
       for (int i(1) ; i < nCells ; ++i)

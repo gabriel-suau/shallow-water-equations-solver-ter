@@ -22,22 +22,22 @@ HLL
 
 # Ordre du schéma. Valeurs possibles 1 ou 2.
 Order
-1
+2
 
 # Paramètres du maillage
 xmin
 0.
 xmax
-4.
+25.
 dx
-0.04
+0.0625
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-300
+0.5
 TimeStep
 0.001
 CFL
@@ -84,7 +84,7 @@ IsTestCase
 #       DamBreakDry
 #       Thacker
 WhichTestCase
-Thacker
+DamBreakDry
 
 
 ###############################################
@@ -99,7 +99,7 @@ Thacker
 #       DamBreakDry               -> Rupture de barrage sur zone sèche
 #       Thacker                   -> Thacker test case
 InitialCondition
-Thacker
+DamBreakDry
 
 
 # Choix de la cote de la surface libre (H = h + z) et du débit initial dans le domaine
@@ -174,7 +174,7 @@ water_height_35.csv
 #         0 -> Fond plat
 #         1 -> Choisit la topo en fonction de la valeur de TopographyType
 IsTopography
-1
+0
 
 # Type de topographie. Valeurs possibles :
 #      FlatBottom      -> Fond plat

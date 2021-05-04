@@ -111,7 +111,7 @@ void TimeScheme::solve()
     }
   if (_DF->isTestCase())
     {
-      _physics->buildExactSolution();
+      _physics->buildExactSolution(_currentTime);
       std::string fileName(resultsDir + "/solution_exacte.txt");
       _physics->saveExactSolution(fileName);
       double L2errorHeight(computeL2Error()(0));
@@ -193,8 +193,8 @@ void ExplicitEuler::oneStep()
   double dx(_mesh->getSpaceStep());
 
   // Construction du terme source et du flux numérique
-  _physics->buildSourceTerm(_Sol);
   _finVol->buildFluxVector(_currentTime, _Sol);
+  _physics->buildSourceTerm(_Sol);
   // Recuperation du terme source et du flux numerique
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& source(_physics->getSourceTerm());
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& fluxVector(_finVol->getFluxVector());

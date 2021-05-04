@@ -55,7 +55,7 @@ public:
   void buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& Sol);
 
   // Construit/Sauvegarde la solution exacte
-  void buildExactSolution();
+  void buildExactSolution(double t);
   void saveExactSolution(std::string& fileName) const;
   
   // Conditions aux limites
@@ -71,19 +71,26 @@ protected:
   void buildTopography();
   void buildInitialCondition();
   void buildExpBoundaryData();
+
+  // Boundary conditions
+
   // Resolution equation second ordre
   double FindRacine(double a, double b, double c);
   // On cherche le terme source en x (pour x dans le domaine)
   double FindSourceX(double x);
 
-  // Méthode de Cardan pour la résolution de ax^3 + bx^2 + cx + d = 0
-  // qui intervient dans la solution exacte des ecoulements au dessus d'une bosse
+  // Exact solution
+  
+  // Stationnary flows over a bump test cases.
   void computeCoeffabcd(double qIn, double hOut, double z, double zEnd, double* a, double* b, double* c, double *d);
   double cardanP(double a, double b, double c) const;
   double cardanQ(double a, double b, double c, double d) const;
   double cardanDet(double p, double q) const;
   double exactHeight(double p, double q, double a, double b, double hnear, double hMax) const;
   double RHJump(double hplus, double hminus, double q) const;
+
+  // Dam breaks test cases
+  double damBreakFunc(double x, double vG, double vD) const;
 };
 
 #endif // PHYSICS_H

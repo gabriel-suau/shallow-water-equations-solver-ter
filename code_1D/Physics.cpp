@@ -84,7 +84,14 @@ void Physics::buildTopography()
   // Thacker test case topography
   else if (_DF->getTopographyType() == "Thacker")
     {
-      // TODO
+      _topography.setZero();
+      double xmin(_DF->getXmin()), xmax(_DF->getXmax()), L(xmax - xmin);
+      double a(1.), h0(0.5);
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          double x(cellCenters(i));
+          _topography(i) = h0 * (1. / pow(a,2) * pow(x - 0.5 * L, 2) - 1.);
+        }
     }
   // Bump topography
   else if (_DF->getTopographyType() == "Bump")
@@ -207,6 +214,23 @@ void Physics::buildInitialCondition()
             }
         }
     }
+  else if (_DF->getInitialCondition() == "Thacker")
+    {
+      _Sol0.col(1).setZero();
+      double xmin(_DF->getXmin()), xmax(_DF->getXmax()), L(xmax - xmin);
+      double a(1.), h0(0.5);
+      double x1(- 0.5 - a + 0.5 * L), x2(- 0.5 + a + 0.5 * L);
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          double x(cellCenters(i));
+          if (x1 <= x && x <= x2)
+            {
+              _Sol0(i,0) = - h0 * (pow(1. / a * (x - 0.5 * L) + 1. / (2. * a), 2) - 1);
+            }
+          else
+            _Sol0(i,0) = 0.;
+        }
+    }
   else if (_DF->getInitialCondition() == "SinePerturbation")
     {
       _Sol0.col(1).setZero();
@@ -310,7 +334,10 @@ void Physics::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _source(i,1) = - _g * Sol(i,0) * 0.05;
+          double xmin(_DF->getXmin()), xmax(_DF->getXmax()), L(xmax - xmin);
+          double a(1.), h0(0.5);
+          double x(cellCenters(i));
+          _source(i,1) = - _g * Sol(i,0) * h0 * (2. / pow(a,2) * (x - 0.5 * L));
         }
     }
   // Topography file
@@ -338,17 +365,126 @@ void Physics::buildSourceTerm(const Eigen::Matrix<double, Eigen::Dynamic, 2>& So
 //--------------------------------------------------//
 //---------------Build Exact Solution---------------//
 //--------------------------------------------------//
-void Physics::buildExactSolution()
+void Physics::buildExactSolution(double t)
 {
   _exactSol.resize(_nCells, 2);
   const std::string& testCase(_DF->getTestCase());
+  const Eigen::VectorXd& cellCenters(_mesh->getCellCenters());
   // Resting lake solutions
   if (testCase == "RestingLake")
     {
       for (int i(0) ; i < _nCells ; ++i)
         {
           _exactSol(i,0) = std::max(_DF->getLeftBCImposedHeight() - _topography(i), 0.);
-          _exactSol(i,1) = _DF->getLeftBCImposedDischarge();
+          _exactSol(i,1) = 0.;
+        }
+    }
+  else if (testCase == "DamBreakWet" || testCase == "DamBreakDry")
+    {
+      // Mesh parameters
+      double xmin(_DF->getXmin()), xmax(_DF->getXmax());
+      double xdam(0.5 * (xmax - xmin));
+      // Parameters for the dichotomy
+      double eps(1e-6);
+      int nmax(1000);
+      int iter(0);
+      // Heights
+      double hG(0.), hD(0.), hMid(0.);
+      // Middle discharge and velocity
+      double qMid(0.), uMid(0.);
+      // Values for the dichotomy
+      double xA(0.), xB(0.), func(0.), mid(0.);
+      // Velocity of the shock wave
+      double v(0.);
+      // Dam break on a wet domain
+      if (testCase == "DamBreakWet")
+        {
+          hG = 2.; hD = 1.;
+        }
+      // Dam break on a dry domain
+      else if (testCase == "DamBreakDry")
+        {
+          hG = 2.; hD = 0.;
+        }
+      // Wave velocities.
+      double cG(sqrt(_g * hG)), cD(sqrt(_g * hD)), cMid(0.);
+      func = damBreakFunc(cG, cG, cD);
+      if (func < 0.)
+        xA = cG;
+      else
+        xB = cG;
+      func = damBreakFunc(cD, cG, cD);
+      if (func < 0.)
+        xA = cD;
+      else
+        xB = cD;
+      // Dichotomy
+      while (abs(xA - xB) > eps && iter < nmax)
+        {
+          ++iter;
+          mid = 0.5 * (xA + xB);
+          func = damBreakFunc(mid, cG, cD);
+          if (func < 0.)
+            xA = mid;
+          else
+            xB = mid;
+        }
+      // cMid
+      cMid = 0.5 * (xA + xB);
+      if (hD == 0.)
+        cMid = 0.;
+      hMid = cMid * cMid / _g;
+      uMid = 2. * (cG - cMid);
+      qMid = hMid * uMid;
+      v = qMid / (hMid - hD);
+      // Compute the solution depending on where we are.
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          double x(cellCenters(i));
+          if (x <= xdam - cG * t)
+            {
+              _exactSol(i,0) = hG;
+              _exactSol(i,1) = 0.;
+            }
+          else if (x <= xdam + (2. * cG - 3. * cMid) * t)
+            {
+              _exactSol(i,0) = 4. / (9. * _g) * pow(sqrt(_g * hG) - 0.5 * (x - xdam) / t, 2);
+              _exactSol(i,1) = _exactSol(i,0) * 2. / 3. * ((x - xdam) / t + sqrt(_g * hG));
+            }
+          else if (x <= xdam + v * t)
+            {
+              _exactSol(i,0) = hMid;
+              _exactSol(i,1) = qMid;
+            }
+          else
+            {
+              _exactSol(i,0) = hD;
+              _exactSol(i,1) = 0.;
+            }
+        }
+    }
+  // Thacker test case
+  else if (testCase == "Thacker")
+    {
+      double xmax(_DF->getXmax()), xmin(_DF->getXmin());
+      double L(xmax - xmin);
+      double a(1.);
+      double h0(0.5);
+      double x1(- 0.5 * cos(sqrt(2. * _g * h0) * t / a) - a + 0.5 * L);
+      double x2(- 0.5 * cos(sqrt(2. * _g * h0) * t / a) + a + 0.5 * L);
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          double x(cellCenters(i));
+          if (x1 <= x && x <= x2)
+            {
+              _exactSol(i,0) = - h0 * (pow(1. / a * (x - 0.5 * L) + 1. / (2. * a) * cos(sqrt(2. * _g * h0) * t / a), 2) - 1);
+              _exactSol(i,1) = sqrt(2. * _g * h0) / (2. * a) * sin(sqrt(2. * _g * h0) * t / a);
+            }
+          else
+            {
+              _exactSol(i,0) = 0.;
+              _exactSol(i,1) = 0.;
+            }
         }
     }
   // Non hydrostatic stationnary solutions
@@ -415,19 +551,21 @@ void Physics::buildExactSolution()
         }
       else if (testCase == "TranscriticalFlowWithShock")
         {
-          // Search for the limite between sub-super-sub
+          // Search for the limit between sub-super-sub
           double test(100.);
           double hplus(0.), hminus(0.);
-          int abslim(2. *_nCells / 5);
+          int abslim(2 * _nCells / 5);
           double epsi(10.0/_nCells);
           double zEnd(_topography(_nCells - 1));
-          while(test>epsi && abslim < _nCells)
+          while(test > epsi && abslim < _nCells)
             {
               computeCoeffabcd(qIn, hOut, _topography(abslim), zEnd, &a, &b, &c, &d);
               p = cardanP(a, b, c);
               q = cardanQ(a, b, c, d);
               hplus = exactHeight(p, q, a, b, hOut, hMax);
               computeCoeffabcd(qIn, hMiddle, _topography(abslim), zMax, &a, &b, &c, &d);
+              p = cardanP(a, b, c);
+              q = cardanQ(a, b, c, d);
               hminus = exactHeight(p, q, a, b, hMiddle, hMax);
               test = RHJump(hplus, hminus, qIn);
               ++abslim;
@@ -439,7 +577,7 @@ void Physics::buildExactSolution()
               computeCoeffabcd(qIn, hMiddle, _topography(i), zMax, &a, &b, &c, &d);
               p = cardanP(a, b, c);
               q = cardanQ(a, b, c, d);
-              _exactSol(i,0) = exactHeight(p, a, a, b, _exactSol(i+1,0), hMax);
+              _exactSol(i,0) = exactHeight(p, q, a, b, _exactSol(i+1,0) + epsilon, hMax);
             }
           for (int i(_nCells - 1) ; i > abslim ; --i)
             {
@@ -451,12 +589,18 @@ void Physics::buildExactSolution()
                 hnear = hOut;
               else
                 hnear = _exactSol(i+1,0);
-              _exactSol(i,0) = exactHeight(p, a, a, b, hnear, hMax);
+              _exactSol(i,0) = exactHeight(p, q, a, b, hnear, hMax);
             }
         }
     }
 }
 
+
+// Function to solve by dichotomy for the dam break solutions
+double Physics::damBreakFunc(double x, double vG, double vD) const
+{
+  return pow(x, 6.) - 9. * pow(vD, 2.) * pow(x, 4.) + 16. * vG * pow(vD, 2.) * pow(x, 3.) - pow(vD, 2.) * (pow(vD, 2.) + 8. * pow(vG, 2.)) * pow(x, 2.) + pow(vD, 6.);
+}
 
 // Methode de cardan
 void Physics::computeCoeffabcd(double qIn, double hOut, double z, double zEnd, double* a, double* b, double* c, double *d)
@@ -536,6 +680,7 @@ double Physics::exactHeight(double p, double q, double a, double b, double hnear
 }
 
 
+// Save the exact solution in a file
 void Physics::saveExactSolution(std::string& fileName) const
 {
 #if VERBOSITY>0
@@ -563,6 +708,8 @@ Eigen::Vector2d Physics::physicalFlux(const Eigen::Vector2d& Sol) const
 {
   Eigen::Vector2d flux;
   double h(Sol(0)), qx(Sol(1));
+  if (h <= 0.)
+    qx = 0.;
   flux(0) = qx;
   flux(1) = qx*qx/h + 0.5*_g*h*h;
   return flux;
@@ -576,6 +723,10 @@ void Physics::computeWaveSpeed(const Eigen::Vector2d& SolG, const Eigen::Vector2
 {
   double hG(SolG(0)), hD(SolD(0));
   double uG(SolG(1)/hG), uD(SolD(1)/hD);
+  if (hG < 1e-6)
+    uG = 0.;
+  if (hD < 1e-6)
+    uD = 0.;
   *lambda1 = std::min(uG - sqrt(_g * hG), uD - sqrt(_g * hD));
   *lambda2 = std::max(uG + sqrt(_g * hG), uD + sqrt(_g * hD));
 }

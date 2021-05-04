@@ -28,18 +28,18 @@ Order
 xmin
 0.
 xmax
-25.
+4.
 dx
-0.05
-        
+0.04
+
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-2
+300
 TimeStep
-0.002
+0.001
 CFL
 0.9
 
@@ -54,7 +54,7 @@ GravityAcceleration
 
 # Répertoire où stocker les résultats
 ResultsDir
-results1
+results
 
 # Sauvegarder uniquement le résultat à t=FinalTime
 SaveFinalResultOnly
@@ -63,7 +63,7 @@ SaveFinalResultOnly
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 # Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
-50
+500
 
 
 #########################################
@@ -80,10 +80,11 @@ IsTestCase
 #       SubcriticalFlow
 #       TranscriticalFlowWithoutShock
 #       TranscriticalFlowWithShock
-#       DamBreakWet (not yet)
-#       DamBreakDry (not yet)
+#       DamBreakWet
+#       DamBreakDry
+#       Thacker
 WhichTestCase
-RestingLake
+Thacker
 
 
 ###############################################
@@ -96,14 +97,15 @@ RestingLake
 #       UniformHeightAndDischarge -> 
 #       DamBreakWet               -> Rupture de barrage classique
 #       DamBreakDry               -> Rupture de barrage sur zone sèche
+#       Thacker                   -> Thacker test case
 InitialCondition
-UniformHeightAndDischarge
+Thacker
 
 
 # Choix de la cote de la surface libre (H = h + z) et du débit initial dans le domaine
 # N'est utile que si InitialCondition == UniformHeightAndDischarge
 InitialHeight
-2.
+0.1
 InitialDischarge
 0.
 
@@ -121,7 +123,7 @@ InitialDischarge
 #       DataFile
 #       PeriodicWaves
 LeftBoundaryCondition
-ImposedConstantHeight
+Neumann
 
 
 # Choix d'une CL à droite. Valeurs possibles
@@ -133,7 +135,7 @@ ImposedConstantHeight
 #       DataFile
 #       PeriodicWaves
 RightBoundaryCondition
-ImposedConstantHeight
+Neumann
 
 
 # Valeurs imposées
@@ -142,11 +144,11 @@ ImposedConstantHeight
 #     - RightBoundaryCondition == ImposedConstantHeight || ImposedConstantDischarge
 # De plus, seulement 2 de ces 4 valeurs seront imposées (régime fluvial ou torrentiel)
 LeftBoundaryImposedHeight
-2.
+0.1
 LeftBoundaryImposedDischarge
-4.42
+0.18
 RightBoundaryImposedHeight
-2.
+0.33
 RightBoundaryImposedDischarge
 0.
 
@@ -180,7 +182,7 @@ IsTopography
 #      Thacker         -> Thacker test case topography
 #      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-Bump
+Thacker
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv

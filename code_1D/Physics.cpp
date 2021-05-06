@@ -110,7 +110,7 @@ void Physics::buildTopography()
       const std::string topoFile(_DF->getTopographyFile());
       std::ifstream topoStream(topoFile);
       std::string line, properLine;
-      double size, dummy;
+      double size;
       int i(0);
       if (!topoStream.is_open())
         {
@@ -125,7 +125,7 @@ void Physics::buildTopography()
         }
 #endif
       topoStream >> size;
-      _fileTopography.resize(size+1, 2);
+      _fileTopography.resize(size + 1, 2);
       while(getline(topoStream, line))
         {
           properLine = regex_replace(line, std::regex(",") , std::string(" "));
@@ -150,6 +150,13 @@ void Physics::buildTopography()
           z1 = _fileTopography(j,1);
           z2 = _fileTopography(j+1,1);
           _topography(k) = z1 + (x - x1) * (z2 - z1) / (x2 - x1);
+        }
+
+      // Fixe la plus petite valeur de la topographie a 0.
+      double topoMin(_topography.minCoeff());
+      for (int i(0) ; i < _nCells ; ++i)
+        {
+          _topography(i) += abs(topoMin);
         }
     }
   else
@@ -246,6 +253,22 @@ void Physics::buildInitialCondition()
             {
               _Sol0(i,0) = std::max(1.8 - _topography(i),0.);
             }
+        }
+    }
+  else if (_DF->getInitialCondition() == "File")
+    {
+      const std::string initFile(_DF->getInitFile());
+      std::ifstream initStream(initFile);
+      std::string line, trash;
+      int i(0);
+      // First line is comments.
+      getline(initStream, line);
+      // Now we build the initial condition
+      while(getline(initStream, line))
+        {
+          std::stringstream ss(line);
+          ss >> trash >> trash >> _Sol0(i,0) >> trash >> _Sol0(i,1) >> trash ;
+          ++i;
         }
     }
   else
@@ -822,7 +845,7 @@ Eigen::Vector2d Physics::leftBoundaryFunction(double t, const Eigen::Matrix<doub
       else if (_DF->getLeftBC() == "DataFile")
         {
           int i_max;
-          i_max = _expBoundaryData.rows() - _i;
+          i_max = _expBoundaryData.rows();
           double temps1(_expBoundaryData(_i,0)), temps2(_expBoundaryData(_i+1,0));
           double hauteur1(_expBoundaryData(_i,1)), hauteur2(_expBoundaryData(_i+1,1));
           while ((!(temps1 < t && t <= temps2)) && (_i < i_max)) // On cherche a trouver les temps connus des capteurs tq temps1 < t <= temps2

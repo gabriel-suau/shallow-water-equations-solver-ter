@@ -22,24 +22,24 @@ HLL
 
 # Ordre du schéma. Valeurs possibles 1 ou 2.
 Order
-2
+1
 
 # Paramètres du maillage
 xmin
 0.
 xmax
-25.
+110
 dx
-0.0625
+0.2
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-0.5
+600
 TimeStep
-0.001
+0.01
 CFL
 0.9
 
@@ -63,7 +63,16 @@ SaveFinalResultOnly
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 # Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
-500
+200
+
+# Water height probes. Format :
+# Number_of_probes
+# Index_of_the_probe x_position 
+Probes
+3
+1 52.88
+2 57.90
+3 62.08
 
 
 #########################################
@@ -73,7 +82,7 @@ SaveFrequency
 # Set to 1 if you are simulating a test case whose analytic solution is implemented
 # Set to 0 either
 IsTestCase
-1
+0
 
 # Which test case ? Ignoré si IsTestCase == 0. Valeurs possibles :
 #       RestingLake
@@ -98,16 +107,21 @@ DamBreakDry
 #       DamBreakWet               -> Rupture de barrage classique
 #       DamBreakDry               -> Rupture de barrage sur zone sèche
 #       Thacker                   -> Thacker test case
+#       File
 InitialCondition
-DamBreakDry
+File
 
 
 # Choix de la cote de la surface libre (H = h + z) et du débit initial dans le domaine
 # N'est utile que si InitialCondition == UniformHeightAndDischarge
 InitialHeight
-0.1
+3.7
 InitialDischarge
 0.
+
+# Choix du fichier duquel lire la condition initiale
+InitFile
+"results/solution_HLL_300.txt"
 
 
 #################################################
@@ -123,7 +137,7 @@ InitialDischarge
 #       DataFile
 #       PeriodicWaves
 LeftBoundaryCondition
-Neumann
+DataFile
 
 
 # Choix d'une CL à droite. Valeurs possibles
@@ -135,7 +149,7 @@ Neumann
 #       DataFile
 #       PeriodicWaves
 RightBoundaryCondition
-Neumann
+ImposedConstantHeight
 
 
 # Valeurs imposées
@@ -148,22 +162,22 @@ LeftBoundaryImposedHeight
 LeftBoundaryImposedDischarge
 0.18
 RightBoundaryImposedHeight
-0.33
+0.5
 RightBoundaryImposedDischarge
-0.
+1.
 
 
 # Fichier de données pour la CL à gauche
 # Format csv a deux colonnes (temps, hauteur d'eau)
 # N'est utile que si LeftBoundaryCondition == DataFile
 LeftBoundaryDataFile
-exp_data/water_height_35.csv
+exp_data/water_height_1_2_3_4_5.csv
 
 # Fichier de données pour la CL à droite
 # Format csv a deux colonnes (temps, hauteur d'eau)
 # N'est utile que si RightBoundaryCondition == DataFile
 RightBoundaryDataFile
-water_height_35.csv
+exp_data/water_height_1_2_3_4_5.csv
 
 
 ########################################
@@ -174,7 +188,7 @@ water_height_35.csv
 #         0 -> Fond plat
 #         1 -> Choisit la topo en fonction de la valeur de TopographyType
 IsTopography
-0
+1
 
 # Type de topographie. Valeurs possibles :
 #      FlatBottom      -> Fond plat
@@ -182,7 +196,7 @@ IsTopography
 #      Thacker         -> Thacker test case topography
 #      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-Thacker
+File
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv

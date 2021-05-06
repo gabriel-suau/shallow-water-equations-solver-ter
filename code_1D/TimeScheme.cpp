@@ -11,7 +11,7 @@
 #include <fstream>
 #include <string>
 #include <cmath>
-
+#include <vector>
 
 //----------------------------------------------------------//
 //------------------Time Scheme base class------------------//
@@ -23,7 +23,7 @@ TimeScheme::TimeScheme()
 
 
 TimeScheme::TimeScheme(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVolume* finVol):
-  _DF(DF), _mesh(mesh), _physics(physics), _finVol(finVol), _Sol(_physics->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime)
+  _DF(DF), _mesh(mesh), _physics(physics), _finVol(finVol), _Sol(_physics->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime), _nProbes(_DF->getNumberOfProbes()), _probesRef(_DF->getProbesReferences()), _probesPos(_DF->getProbesPositions()), _probesIndices(_nProbes, 0)
 {
 }
 
@@ -40,6 +40,35 @@ void TimeScheme::Initialize(DataFile* DF, Mesh* mesh, Physics* physics, FiniteVo
   _initialTime = DF->getInitialTime();
   _finalTime = DF->getFinalTime();
   _currentTime = _initialTime;
+  _nProbes = _DF->getNumberOfProbes();
+  _probesRef = _DF->getProbesReferences();
+  _probesPos = _DF->getProbesPositions();
+  _probesIndices.resize(_nProbes, 0);
+}
+
+
+
+void TimeScheme::buildProbesCellIndices()
+{
+  int nbCells(_mesh->getNumberOfCells());
+  const Eigen::VectorXd& cellCenters(_mesh->getCellCenters());
+  for (int i(0) ; i < _nProbes ; ++i)
+    {
+      double pos(_probesPos[i]);
+      int index(0);
+      double distMin(abs(pos - cellCenters(0))), dist;
+      for (int k(0) ; k < nbCells ; ++k)
+        {
+          double x(cellCenters(k));
+          dist = abs(pos - x);
+          if (dist < distMin)
+            {
+              distMin = dist;
+              index = k;
+            }
+        }
+      _probesIndices[i] = index;
+    }
 }
 
 
@@ -62,6 +91,29 @@ void TimeScheme::saveCurrentSolution(std::string& fileName) const
         _Sol(i,1)/_Sol(i,0) << " " <<
         _Sol(i,1) << " " <<
         abs(_Sol(i,1)/_Sol(i,0))/sqrt(g * _Sol(i,0)) << std::endl;
+    }
+}
+
+
+
+void TimeScheme::saveProbes() const
+{
+  // Get the probes parameters
+  int nbProbes(_DF->getNumberOfProbes());
+  double g(_DF->getGravityAcceleration());
+  // Loop on each probe and save the wanted quantities
+  for (int i(0) ; i < nbProbes ; ++i)
+    {
+      std::string fileName(_DF->getResultsDirectory() + "/probe_" + std::to_string(_probesRef[i]) + ".txt");
+      std::ofstream outputFile(fileName, std::ios::app);
+      int index(_probesIndices[i]);
+      // Gnuplot comments for the user
+      outputFile << _currentTime << "," <<
+        _Sol(index,0) + _physics->getTopography()(index) << "," <<
+        _Sol(index,0) << "," <<
+        _Sol(index,1)/_Sol(index,0) << "," <<
+        _Sol(index,1) << "," <<
+        abs(_Sol(index,1)/_Sol(index,0))/sqrt(g * _Sol(index,0)) << std::endl;
     }
 }
 
@@ -91,6 +143,9 @@ void TimeScheme::solve()
     {
       topoFile << _mesh->getCellCenters()(i) << " " << _physics->getTopography()(i) << std::endl;
     }
+
+  // Trouve les indices des cellules dans lesquelles sont les sondes
+  buildProbesCellIndices();
   
   // Boucle en temps
   while (_currentTime < _finalTime)
@@ -98,12 +153,19 @@ void TimeScheme::solve()
       oneStep();
       ++n;
       _currentTime += _timeStep;
+      // Save solution at time t
       if (!_DF->isSaveFinalTimeOnly() &&  n % _DF->getSaveFrequency() == 0)
         {
           std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".txt");
           saveCurrentSolution(fileName);
         }
+      // Save probes
+      if (_nProbes != 0 && n % 5 == 0)
+        {
+          saveProbes();
+        }
     }
+  // End of time loop
   if (_DF->isSaveFinalTimeOnly())
     {
       std::string fileName(resultsDir + "/solution_" + fluxName + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".txt");

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 class DataFile
 {
@@ -14,13 +15,18 @@ private:
   std::string _resultsDir;
   bool _isSaveFinalTimeOnly;
   int _saveFrequency;
-
+  // Water height probes (to follow the water height at a precise position with time).
+  int _nProbes;
+  std::vector<int> _probesReferences;
+  std::vector<double> _probesPositions;
+  
   // Test cases
   bool _isTestCase;
   std::string _testCase;
   
   // Conditions initiales
   std::string _initialCondition;
+  std::string _initFile;
   double _initialHeight, _initialDischarge;
   
   // Mesh parameters
@@ -76,11 +82,15 @@ public:
   const std::string& getResultsDirectory() const {return _resultsDir;};
   bool isSaveFinalTimeOnly() const {return _isSaveFinalTimeOnly;};
   int getSaveFrequency() const {return _saveFrequency;};
+  int getNumberOfProbes() const {return _nProbes;};
+  const std::vector<int>& getProbesReferences() const {return _probesReferences;};
+  const std::vector<double>& getProbesPositions() const {return _probesPositions;};
   // Test cases
   bool isTestCase() const {return _isTestCase;};
   const std::string& getTestCase() const {return _testCase;};
   // Initial Conditions
   const std::string& getInitialCondition() const {return _initialCondition;};
+  const std::string& getInitFile() const {return _initFile;};
   double getInitialHeight() const {return _initialHeight;};
   double getInitialDischarge() const {return _initialDischarge;};
   // Mesh related

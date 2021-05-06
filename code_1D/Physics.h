@@ -30,6 +30,8 @@ private:
   // Topographie pour le terme source.
   Eigen::Matrix<double, Eigen::Dynamic, 2> _fileTopography;
   Eigen::VectorXd _topography;
+
+  // Terme source
   Eigen::Matrix<double, Eigen::Dynamic, 2> _source;
 
   // Exact solution

@@ -78,6 +78,16 @@ void DataFile::readDataFile()
         {
           dataFile >> _saveFrequency;
         }
+      if (proper_line.find("Probes") != std::string::npos)
+        {
+          dataFile >> _nProbes;
+          _probesPositions.resize(_nProbes, 0.);
+          _probesReferences.resize(_nProbes, 0.);
+          for (int i(0) ; i < _nProbes ; ++i)
+            {
+              dataFile >> _probesReferences[i] >> _probesPositions[i];
+            }
+        }
       if (proper_line.find("IsTestCase") != std::string::npos)
         {
           dataFile >> _isTestCase;
@@ -97,6 +107,10 @@ void DataFile::readDataFile()
       if (proper_line.find("InitialDischarge") != std::string::npos)
         {
           dataFile >> _initialDischarge;
+        }
+      if (proper_line.find("InitFile") != std::string::npos)
+        {
+          dataFile >> _initFile;
         }
       if (proper_line.find("xmin") != std::string::npos)
         {
@@ -188,6 +202,11 @@ void DataFile::readDataFile()
         }
     }
 
+  // Making a teporary directory in which to copy the initFile
+  system("mkdir -p ./temp");
+  system(("cp -T " + _initFile + " ./temp/initial_condition.txt").c_str());
+  _initFile = "temp/initial_condition.txt";
+  
   // Création et nettoyage du dossier de résultats
 #if VERBOSITY>0
   std::cout << "Creating the results directory..." << std::endl;
@@ -195,6 +214,7 @@ void DataFile::readDataFile()
   
   system(("mkdir -p ./" +_resultsDir).c_str());
   system(("rm -f ./" +_resultsDir + "/solution*").c_str());
+  system(("rm -f ./" +_resultsDir + "/probe_*").c_str());
   system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/parameters.txt").c_str());
 
   // Logs
@@ -242,10 +262,10 @@ void DataFile::printData() const
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Printing parameters of " << _fileName << std::endl;
   std::cout << "Mesh                 = Generated" << std::endl;
-  std::cout << "  |xmin              = " << _xmin << std::endl;
-  std::cout << "  |xmax              = " << _xmax << std::endl;
-  std::cout << "  |Nx                = " << _Nx << std::endl;
-  std::cout << "  |dx                = " << _dx << std::endl;
+  std::cout << "   |xmin             = " << _xmin << std::endl;
+  std::cout << "   |xmax             = " << _xmax << std::endl;
+  std::cout << "   |Nx               = " << _Nx << std::endl;
+  std::cout << "   |dx               = " << _dx << std::endl;
   std::cout << "Is Test Case         = " << _isTestCase << std::endl;
   if (_isTestCase)
     std::cout << "Test Case            = " << _testCase << std::endl;
@@ -254,6 +274,10 @@ void DataFile::printData() const
     {
       std::cout << "  |Initial Height    = " << _initialHeight << std::endl;
       std::cout << "  |Initial Discharge = " << _initialDischarge << std::endl;
+    }
+  if (_initialCondition == "InitFile")
+    {
+      std::cout << "  |Init File         = " << _initFile << std::endl;
     }
   std::cout << "Numerical Flux       = " << _numericalFlux << std::endl;
   std::cout << "Order                = " << _schemeOrder << std::endl;
@@ -266,9 +290,13 @@ void DataFile::printData() const
   std::cout << "SaveFinalTimeOnly    = " << _isSaveFinalTimeOnly << std::endl;
   if (!_isSaveFinalTimeOnly)
     std::cout << "Save Frequency       = " << _saveFrequency << std::endl;
+  
+  std::cout << "Number of probes     = " << _nProbes << std::endl;
+  for (int i(0) ; i < _nProbes ; ++i)
+    std::cout << "   |Position probe " << _probesReferences[i] << " = " << _probesPositions[i] << std::endl;
   std::cout << "LeftBC               = " << _leftBC << std::endl;
   if (_leftBC == "DataFile")
-      std::cout << "   |LeftBCFile    = " << _leftBCDataFile << std::endl;
+      std::cout << "   |LeftBCFile       = " << _leftBCDataFile << std::endl;
   if (_leftBC == "ImposedConstantHeight")
     {
       std::cout << "   |ImposedHeight    = " << _leftBCImposedHeight << std::endl;

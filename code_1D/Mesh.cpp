@@ -11,7 +11,7 @@ Mesh::Mesh()
 }
 
 Mesh::Mesh(DataFile* DF):
-  _DF(DF), _xmin(DF->getXmin()), _xmax(DF->getXmax()), _dx(DF->getDx()), _numberOfCells(DF->getNx()), _cellCenters(_numberOfCells), _cellBoundaries(_numberOfCells + 1)
+  _DF(DF), _xmin(DF->getXmin()), _xmax(DF->getXmax()), _dx(DF->getDx()), _numberOfCells(DF->getNx()), _cellCenters(_numberOfCells)
 {
 }
 
@@ -23,7 +23,6 @@ void Mesh::Initialize(DataFile* DF)
   _dx = DF->getDx();
   _numberOfCells = DF->getNx();
   _cellCenters.resize(_numberOfCells);
-  _cellBoundaries.resize(_numberOfCells + 1);
   this->Initialize();
 }
 
@@ -35,10 +34,8 @@ void Mesh::Initialize()
 #endif
   for (int i(0) ; i < _numberOfCells ; ++i)
     {
-      _cellBoundaries(i) = _xmin + i * _dx;
-      _cellCenters(i) = _cellBoundaries(i) + 0.5 * _dx;
+      _cellCenters(i) = _xmin + (i + 0.5) * _dx;
     }
-  _cellBoundaries(_numberOfCells) = _xmax;
 #if VERBOSITY>0
   std::cout << termcolor::green << "SUCCESS::MESH : Mesh generated succesfully !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;

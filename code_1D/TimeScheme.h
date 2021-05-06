@@ -8,6 +8,8 @@
 #include "Physics.h"
 #include "FiniteVolume.h"
 
+#include <vector>
+
 class TimeScheme
 {
 protected:
@@ -25,6 +27,12 @@ protected:
   double _initialTime;
   double _finalTime;
   double _currentTime;
+
+  // Probes
+  int _nProbes;
+  std::vector<int> _probesRef;
+  std::vector<double> _probesPos;
+  std::vector<int> _probesIndices;
   
 public:
   // Constructeurs
@@ -42,10 +50,14 @@ public:
   double getInitialTime() const {return _initialTime;};
   double getFinalTime() const {return _finalTime;};
   double getCurrentTime() const {return _currentTime;};
+
+  // Adjust the probes prositions to fit within the mesh
+  void buildProbesCellIndices();
   
   // Solve and save solution
   virtual void oneStep() = 0;
   void saveCurrentSolution(std::string& fileName) const;
+  void saveProbes() const;
   void solve();
 
   // Error

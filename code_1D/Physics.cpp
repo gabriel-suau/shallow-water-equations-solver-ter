@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <complex>
 
+
+
 //------------------------------------------//
 //---------------Constructors---------------//
 //------------------------------------------//
@@ -156,7 +158,7 @@ void Physics::buildTopography()
       double topoMin(_topography.minCoeff());
       for (int i(0) ; i < _nCells ; ++i)
         {
-          _topography(i) += abs(topoMin);
+          _topography(i) -= topoMin;
         }
     }
   else
@@ -775,7 +777,7 @@ Eigen::Vector2d Physics::leftBoundaryFunction(double t, const Eigen::Matrix<doub
   else if (_DF->getLeftBC() == "Wall")
     {
       SolG(0) = Sol(0,0);
-      SolG(1) = 0;
+      SolG(1) = 0.;
     }
   else if (_DF->getLeftBC() == "ImposedConstantDischarge")
     {
@@ -839,7 +841,7 @@ Eigen::Vector2d Physics::leftBoundaryFunction(double t, const Eigen::Matrix<doub
         }
       if (_DF->getLeftBC() == "PeriodicWaves")
         {
-          SolG(0) = 3. + 0.1*sin(5 * M_PI * t) - _topography(0);
+          SolG(0) = 3. + 0.1*sin(5 * M_PI * t);
           SolG(1) = SolG(0)*(beta_moins_0_tnplus1 + 2*sqrt(_g*SolG(0)));
         }
       else if (_DF->getLeftBC() == "DataFile")
@@ -890,7 +892,7 @@ Eigen::Vector2d Physics::rightBoundaryFunction(double t, const Eigen::Matrix<dou
   else if (_DF->getRightBC() == "Wall")
     {
       SolD(0) = Sol(_nCells - 1,0);
-      SolD(1) = 0;
+      SolD(1) = 0.;
     }
   else if (_DF->getRightBC() == "ImposedConstantDischarge")
     {

@@ -8,6 +8,8 @@
 #include "Eigen/Eigen/Dense"
 #include "Eigen/Eigen/Sparse"
 
+
+
 class FiniteVolume
 {
 protected:
@@ -46,6 +48,8 @@ protected:
   double minmod(double a, double b) const;
 };
 
+
+
 class LaxFriedrichs: public FiniteVolume
 {
 public:
@@ -60,6 +64,8 @@ public:
   Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const;
 };
 
+
+
 class Rusanov: public FiniteVolume
 {
 public:
@@ -73,6 +79,8 @@ public:
   // Build flux vector
   Eigen::Vector2d numFlux(const Eigen::Vector2d& SolG, const Eigen::Vector2d& SolD) const;
 };
+
+
 
 class HLL: public FiniteVolume
 {

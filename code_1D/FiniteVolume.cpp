@@ -118,47 +118,6 @@ void FiniteVolume::buildFluxVector(const double t, const Eigen::Matrix<double, E
         }
       break;
     }
-
-  
-  // // Select the well-balanced reconstruction
-  // // Hydrostatic
-  // Eigen::Matrix<double, Eigen::Dynamic, 2> tempG, tempD;
-  // tempG.resize(nCells + 1, 2);
-  // tempD.resize(nCells + 1, 2);
-  // const Eigen::VectorXd& topography(_physics->getTopography());
-  // // Left boundary
-  // tempG(0,0) = std::max(0., SolG(0,0));
-  // tempD(0,0) = std::max(0., SolD(0,0));
-  // tempG(0,1) = tempG(0,0) * SolG(0,1) / SolG(0,0);
-  // tempD(0,1) = tempD(0,0) * SolD(0,1) / SolD(0,0);
-  // // Interior edges
-  // for (int i(1) ; i < nCells ; ++i)
-  //   {
-  //     double zi(topography(i-1)), zip(topography(i));
-  //     tempG(i,0) = std::max(0., SolG(i,0) + zi - std::max(zi, zip));
-  //     tempD(i,0) = std::max(0., SolD(i,0) + zip - std::max(zi, zip));
-  //     tempG(i,1) = tempG(i,0) * SolG(i,1)/SolG(i,0);
-  //     tempD(i,1) = tempD(i,0) * SolD(i,1)/SolD(i,0);
-  //   }
-  // // Right boundary
-  // tempG(nCells,0) = std::max(0., SolG(nCells,0));
-  // tempD(nCells,0) = std::max(0., SolD(nCells,0));
-  // tempG(nCells,1) = tempG(nCells,0) * SolG(nCells,1) / SolG(nCells,0);
-  // tempD(nCells,1) = tempD(nCells,0) * SolD(nCells,1) / SolD(nCells,0);
-
-  // // Source term reconstruction
-  // Eigen::Matrix<double, Eigen::Dynamic, 2> sourceG, sourceD;
-  // sourceG.resize(nCells + 1, 2);
-  // sourceD.resize(nCells + 1, 2);
-  // for (int i(0) ; i <= nCells ; ++i)
-  //   {
-  //     sourceG.row(i) << 0. , 0.5 * g * (pow(SolG(i,0), 2) - pow(tempG(i,0), 2));
-  //     sourceD.row(i) << 0. , 0.5 * g * (pow(SolD(i,0), 2) - pow(tempD(i,0), 2));
-  //   }
-
-  // // oui
-  // SolG = tempG;
-  // SolD = tempD;
   
   // Build the flux vector using the reconstructed values at each edge
   // Left boundary contribution

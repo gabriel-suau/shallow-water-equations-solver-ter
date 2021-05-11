@@ -6,11 +6,6 @@ PT1 = load("data_PT1.mat");
 PT2 = load("data_PT2.mat");
 PT35 = load("data_sync_PT3-5.mat");
 
-% Get time vector.
-##PT1.time = (PT1.time - PT1.time(1))*16.;
-##PT2.time = (PT2.time - PT2.time(1))*16.;
-##PT35_time = (PT35.time - PT35.time(1))*16.;
-
 % Plot the topography and the position of the sensors.
 
 %figure(1)
@@ -46,29 +41,41 @@ for i=nmin:nmax
   PT35.time(i) = [(i-nmin)/16.];
 end
 
-water_height = [PT35.time(nmin:nmax) PT1.h_hyd(nmin:nmax) PT2.h_hyd(nmin:nmax) PT35.h_hyd(nmin:nmax,1) PT35.h_hyd(nmin:nmax,2) PT35.h_hyd(nmin:nmax,3)];
+nmin2 = nmin;
+nmax2 = nmin2 + 6000;
+ntot2 = nmax2-nmin2+1;
+for i=nmin2:nmax2
+  PT1.time(i) = [(i-nmin)/10.];
+  PT2.time(i) = [(i-nmin)/10.];
+end
+
+water_height_1 = [PT1.time(nmin2:nmax2) PT1.h_hyd(nmin2:nmax2)];
+water_height_2 = [PT2.time(nmin2:nmax2) PT2.h_hyd(nmin2:nmax2)];
+water_height_3 = [PT35.time(nmin:nmax) PT35.h_hyd(nmin:nmax,1)];
+water_height_4 = [PT35.time(nmin:nmax) PT35.h_hyd(nmin:nmax,2)];
+water_height_5 = [PT35.time(nmin:nmax) PT35.h_hyd(nmin:nmax,3)];
 
 % We need to remove the effects of tide in experimental data.
 % To do that, we make a polynomial regression to get the general trend
 % and substract it to keep only the height variation due to waves.
 
-coef_1 = polyfit(water_height(1:end,1),water_height(1:end,2),2);
-coef_2 = polyfit(water_height(1:end,1),water_height(1:end,3),2);
-coef_3 = polyfit(water_height(1:end,1),water_height(1:end,4),2);
-coef_4 = polyfit(water_height(1:end,1),water_height(1:end,5),2);
-coef_5 = polyfit(water_height(1:end,1),water_height(1:end,6),2);
+coef_1 = polyfit(water_height_1(1:end,1),water_height_1(1:end,2),2);
+coef_2 = polyfit(water_height_2(1:end,1),water_height_2(1:end,2),2);
+coef_3 = polyfit(water_height_3(1:end,1),water_height_3(1:end,2),2);
+coef_4 = polyfit(water_height_4(1:end,1),water_height_4(1:end,2),2);
+coef_5 = polyfit(water_height_5(1:end,1),water_height_5(1:end,2),2);
 
-regression_1 = [coef_1(1)*water_height(1:end,1).^2+coef_1(2)*water_height(1:end,1)];
-regression_2 = [coef_2(1)*water_height(1:end,1).^2+coef_2(2)*water_height(1:end,1)];
-regression_3 = [coef_3(1)*water_height(1:end,1).^2+coef_3(2)*water_height(1:end,1)];
-regression_4 = [coef_4(1)*water_height(1:end,1).^2+coef_4(2)*water_height(1:end,1)];
-regression_5 = [coef_5(1)*water_height(1:end,1).^2+coef_5(2)*water_height(1:end,1)];
+regression_1 = [coef_1(1)*water_height_1(1:end,1).^2+coef_1(2)*water_height_1(1:end,1)];
+regression_2 = [coef_2(1)*water_height_2(1:end,1).^2+coef_2(2)*water_height_2(1:end,1)];
+regression_3 = [coef_3(1)*water_height_3(1:end,1).^2+coef_3(2)*water_height_3(1:end,1)];
+regression_4 = [coef_4(1)*water_height_4(1:end,1).^2+coef_4(2)*water_height_4(1:end,1)];
+regression_5 = [coef_5(1)*water_height_5(1:end,1).^2+coef_5(2)*water_height_5(1:end,1)];
 
-water_height(1:end,2) -= regression_1(1:end);
-water_height(1:end,3) -= regression_2(1:end);
-water_height(1:end,4) -= regression_3(1:end);
-water_height(1:end,5) -= regression_4(1:end);
-water_height(1:end,6) -= regression_5(1:end);
+water_height_1(1:end,2) -= regression_1(1:end);
+water_height_2(1:end,2) -= regression_2(1:end);
+water_height_3(1:end,2) -= regression_3(1:end);
+water_height_4(1:end,2) -= regression_4(1:end);
+water_height_5(1:end,2) -= regression_5(1:end);
 
 % We have now the water level relative to the pressure sensors.
 % The sensors are located at a height equal to delta_b from the ground,
@@ -80,12 +87,16 @@ delta_b_3 = 0.14;
 delta_b_4 = 0.11;
 delta_b_5 = 0.12;
 
-water_height(1:end,2) += delta_b_1- min(min(water_height));
-water_height(1:end,3) += delta_b_2- min(min(water_height));
-water_height(1:end,4) += delta_b_3- min(min(water_height));
-water_height(1:end,5) += delta_b_4- min(min(water_height));
-water_height(1:end,6) += delta_b_5- min(min(water_height));
+water_height_1(1:end,2) += delta_b_1; %- min(min(water_height));
+water_height_2(1:end,2) += delta_b_2; %- min(min(water_height));
+water_height_3(1:end,2) += delta_b_3; %- min(min(water_height));
+water_height_4(1:end,2) += delta_b_4; %- min(min(water_height));
+water_height_5(1:end,2) += delta_b_5; %- min(min(water_height));
 
 % Write the topography and the corrected water height into csv files.
 csvwrite("topography.csv",[transpose(topo.x) transpose(topo.z)]);
-csvwrite("water_height_1_2_3_4_5.csv", water_height);
+csvwrite("water_height_1.csv", water_height_1);
+csvwrite("water_height_2.csv", water_height_2);
+csvwrite("water_height_3.csv", water_height_3);
+csvwrite("water_height_4.csv", water_height_4);
+csvwrite("water_height_5.csv", water_height_5);

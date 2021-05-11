@@ -204,7 +204,7 @@ void DataFile::readDataFile()
 
   // Making a teporary directory in which to copy the initFile
   system("mkdir -p ./temp");
-  system(("cp -T " + _initFile + " ./temp/initial_condition.txt").c_str());
+  system(("cp -T " + _initFile + " ./temp/initial_condition.txt 2> /dev/null").c_str());
   _initFile = "temp/initial_condition.txt";
   
   // Création et nettoyage du dossier de résultats

@@ -22,24 +22,24 @@ HLL
 
 # Ordre du schéma. Valeurs possibles 1 ou 2.
 Order
-1
+2
 
 # Paramètres du maillage
 xmin
 0.
 xmax
-25
+60
 dx
-0.25
+0.05
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite (en fait non)
 InitialTime
 0.
 FinalTime
-300
+600
 TimeStep
-0.001
+0.002
 CFL
 0.9
 
@@ -54,11 +54,11 @@ GravityAcceleration
 
 # Répertoire où stocker les résultats
 ResultsDir
-results_test
+results
 
 # Sauvegarder uniquement le résultat à t=FinalTime
 SaveFinalResultOnly
-1
+0
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 # Ignoré si SaveFinalResultOnly vaut 1
@@ -69,10 +69,12 @@ SaveFrequency
 # Number_of_probes
 # Index_of_the_probe x_position 
 Probes
-0
+5
 1 0
 2 5.02
 3 9.2
+4 20.02
+5 35.02
 
 
 #########################################
@@ -82,7 +84,7 @@ Probes
 # Set to 1 if you are simulating a test case whose analytic solution is implemented
 # Set to 0 either
 IsTestCase
-1
+0
 
 # Which test case ? Ignoré si IsTestCase == 0. Valeurs possibles :
 #       RestingLake
@@ -93,7 +95,7 @@ IsTestCase
 #       DamBreakDry
 #       Thacker
 WhichTestCase
-SubcriticalFlow
+DamBreakDry
 
 
 ###############################################
@@ -109,13 +111,13 @@ SubcriticalFlow
 #       Thacker                   -> Thacker test case
 #       File
 InitialCondition
-UniformHeightAndDischarge
+File
 
 
 # Choix de la cote de la surface libre (H = h + z) et du débit initial dans le domaine
 # N'est utile que si InitialCondition == UniformHeightAndDischarge
 InitialHeight
-2
+1.0
 InitialDischarge
 0.
 
@@ -137,7 +139,7 @@ InitFile
 #       DataFile
 #       PeriodicWaves
 LeftBoundaryCondition
-ImposedConstantDischarge
+DataFile
 
 
 # Choix d'une CL à droite. Valeurs possibles
@@ -160,9 +162,9 @@ ImposedConstantHeight
 LeftBoundaryImposedHeight
 0.1
 LeftBoundaryImposedDischarge
-4.42
+1.53
 RightBoundaryImposedHeight
-2.0
+1.0
 RightBoundaryImposedDischarge
 1.
 
@@ -196,7 +198,7 @@ IsTopography
 #      Thacker         -> Thacker test case topography
 #      File            -> Lire dans le fichier indiqué dans TopographyFile
 TopographyType
-Bump
+File
 
 # Fichier de topographie (ignoré si IsTopography == 0, ou si TopographyType != File)
 # Format csv

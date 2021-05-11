@@ -13,6 +13,8 @@
 #include <cmath>
 #include <vector>
 
+
+
 //----------------------------------------------------------//
 //------------------Time Scheme base class------------------//
 //----------------------------------------------------------//
@@ -160,7 +162,7 @@ void TimeScheme::solve()
           saveCurrentSolution(fileName);
         }
       // Save probes
-      if (_nProbes != 0 && n % 5 == 0)
+      if (_nProbes != 0 && n % (_DF->getSaveFrequency()/10) == 0)
         {
           saveProbes();
         }
@@ -176,12 +178,10 @@ void TimeScheme::solve()
       _physics->buildExactSolution(_currentTime);
       std::string fileName(resultsDir + "/solution_exacte.txt");
       _physics->saveExactSolution(fileName);
-      double L2errorHeight(computeL2Error()(0));
-      double L2errorDischarge(computeL2Error()(1));
-      std::cout << "Error h  L2 = " << L2errorHeight << " and error q L2 = " << L2errorDischarge << " for dx = " << _DF->getDx() << std::endl;
-      double L1errorHeight(computeL1Error()(0));
-      double L1errorDischarge(computeL1Error()(1));
-      std::cout << "Error h  L1 = " << L1errorHeight << " and error q L1 = " << L1errorDischarge << " for dx = " << _DF->getDx() << std::endl;
+      Eigen::Vector2d L2error(computeL2Error());
+      std::cout << "Error h  L2 = " << L2error(0) << " and error q L2 = " << L2error(1) << " for dx = " << _DF->getDx() << std::endl;
+      Eigen::Vector2d L1error(computeL1Error());
+      std::cout << "Error h  L1 = " << L1error(0) << " and error q L1 = " << L1error(1) << " for dx = " << _DF->getDx() << std::endl;
     }
   // Logs de fin
 #if VERBOSITY>0
@@ -197,7 +197,7 @@ Eigen::Vector2d TimeScheme::computeL2Error() const
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& exactSol(_physics->getExactSolution());
   error(0) = (_Sol.col(0) - exactSol.col(0)).norm();
   error(1) = (_Sol.col(1) - exactSol.col(1)).norm();
-  error *= sqrt(_DF->getDx());
+  error *= _DF->getDx();
   return error;
 }
 
@@ -307,17 +307,19 @@ void RK2::oneStep()
   Eigen::Matrix<double, Eigen::Dynamic, 2> k1, k2;
 
   // Calcul de k1
-  _physics->buildSourceTerm(_Sol);
   _finVol->buildFluxVector(_currentTime, _Sol);
-  const Eigen::Matrix<double, Eigen::Dynamic, 2>& source1(_physics->getSourceTerm());
+  _physics->buildSourceTerm(_Sol);
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& fluxVector1(_finVol->getFluxVector());
+  const Eigen::Matrix<double, Eigen::Dynamic, 2>& source1(_physics->getSourceTerm());
   k1 = fluxVector1 / dx + source1;
+  
   // Calcul de k2
   _physics->buildSourceTerm(_Sol + dt * k1);
   _finVol->buildFluxVector(_currentTime + dt, _Sol + dt * k1);
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& source2(_physics->getSourceTerm());
   const Eigen::Matrix<double, Eigen::Dynamic, 2>& fluxVector2(_finVol->getFluxVector());
   k2 = fluxVector2 / dx + source2;
+  
   // Mise a jour de la solution
   _Sol += 0.5 * dt * (k1 + k2);
 }

@@ -10,6 +10,8 @@
 
 #include <vector>
 
+
+
 class TimeScheme
 {
 protected:
@@ -65,6 +67,8 @@ public:
   Eigen::Vector2d computeL1Error() const;
 };
 
+
+
 class ExplicitEuler: public TimeScheme
 {
 public:
@@ -79,6 +83,8 @@ public:
   void oneStep();
 };
 
+
+
 class RK2: public TimeScheme
 {
 public:
@@ -92,5 +98,7 @@ public:
   // One time step
   void oneStep();
 };
+
+
 
 #endif // TIME_SCHEME_H
